@@ -1,0 +1,29 @@
+{
+  "app": {
+    "title": "Smart Smoker Push Experiment",
+    "instructions": "Development test only. On iPhone, add this HTTPS page to the Home Screen and open its icon first. Paste only the development VAPID PUBLIC key. Keep the exported subscription private; transfer it using an encrypted owner-controlled channel. This page never contacts your smoker.",
+    "language": "Language",
+    "key": "Development VAPID public key",
+    "subscribe": "Allow notifications and register",
+    "export": "Export private subscription",
+    "unsubscribe": "Remove subscription",
+    "output": "Private export: select and copy into the publisher's private file"
+  },
+  "status": {
+    "unavailable": "Unavailable",
+    "starting": "Preparing registration…",
+    "unsupported": "Push is unavailable here. Use a trusted HTTPS origin and a supported browser; on iPhone, open the installed Home Screen app.",
+    "ready": "Ready. Enter the public key and register with the button.",
+    "existing": "An existing subscription was found. Export it, or remove it before changing VAPID keys.",
+    "registered": "Registered. Export the subscription for the development publisher.",
+    "denied": "Permission was not granted. Review browser and system notification settings before retrying.",
+    "failed": "Operation failed. Check the public key, permissions, network and browser support. Private values are hidden.",
+    "exported": "Private subscription exported below. After changing language, export and transfer again.",
+    "removed": "Subscription removed. Delete its old private publisher file too."
+  },
+  "notification": {
+    "title": "Smart Smoker — push test",
+    "body": "Test {{id}} sent at {{time}}. Development publisher; no real temperature alert.",
+    "fallback": "A development push arrived with an empty or invalid test payload."
+  }
+}

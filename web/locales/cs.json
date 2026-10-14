@@ -1,0 +1,29 @@
+{
+  "app": {
+    "title": "Smart Smoker — experiment s push zprávami",
+    "instructions": "Pouze vývojový test. Na iPhonu přidejte tuto HTTPS stránku na plochu a otevřete její ikonu. Vložte pouze vývojový VEŘEJNÝ klíč VAPID. Export předplatného uchovejte v soukromí a přeneste šifrovaným kanálem pod svou kontrolou. Tato stránka nekomunikuje s udírnou.",
+    "language": "Jazyk",
+    "key": "Vývojový veřejný klíč VAPID",
+    "subscribe": "Povolit oznámení a registrovat",
+    "export": "Exportovat soukromé předplatné",
+    "unsubscribe": "Odstranit předplatné",
+    "output": "Soukromý export: označte a zkopírujte do soukromého souboru publisheru"
+  },
+  "status": {
+    "unavailable": "Nedostupné",
+    "starting": "Příprava registrace…",
+    "unsupported": "Push zde není dostupný. Použijte důvěryhodný HTTPS původ a podporovaný prohlížeč; na iPhonu otevřete aplikaci z plochy.",
+    "ready": "Připraveno. Vložte veřejný klíč a zaregistrujte se tlačítkem.",
+    "existing": "Bylo nalezeno existující předplatné. Exportujte je nebo je před změnou klíčů VAPID odstraňte.",
+    "registered": "Registrováno. Exportujte předplatné pro vývojový publisher.",
+    "denied": "Oprávnění nebylo uděleno. Před dalším pokusem zkontrolujte nastavení oznámení v prohlížeči a systému.",
+    "failed": "Operace selhala. Zkontrolujte veřejný klíč, oprávnění, síť a podporu prohlížeče. Soukromé hodnoty se nezobrazují.",
+    "exported": "Soukromé předplatné je exportováno níže. Po změně jazyka je znovu exportujte a přeneste.",
+    "removed": "Předplatné odstraněno. Odstraňte také jeho starý soukromý soubor u publisheru."
+  },
+  "notification": {
+    "title": "Smart Smoker — test push oznámení",
+    "body": "Test {{id}} odeslaný {{time}}. Vývojový publisher; nejde o skutečný teplotní alarm.",
+    "fallback": "Dorazila vývojová push zpráva s prázdnými nebo neplatnými testovacími daty."
+  }
+}

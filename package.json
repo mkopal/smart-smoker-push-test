@@ -1,0 +1,19 @@
+{
+  "name": "smart-smoker-push-test",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Development-only Web Push publisher; never part of firmware",
+  "scripts": {
+    "test": "node tests.js",
+    "test:library": "node library-test.js",
+    "build": "python3 build.py",
+    "check:public": "python3 scripts/audit_public.py",
+    "test:browser": "node scripts/browser-test.cjs"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "devDependencies": {
+    "web-push": "3.6.7"
+  }
+}
