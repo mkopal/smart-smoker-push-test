@@ -130,6 +130,11 @@ a test PASS until you actually observe the intended phone notification.
 
 ```bash
 python3 -c 'import os,sys; fd=os.open("local/private/android.json",os.O_WRONLY|os.O_CREAT|os.O_EXCL,0o600); f=os.fdopen(fd,"w"); f.write(sys.stdin.read()); f.close()'
+```
+
+Finish the interactive paste with Ctrl+D before running a separate send command:
+
+```bash
 node publisher.cjs send local/private/vapid.json local/private/android.json
 ```
 
