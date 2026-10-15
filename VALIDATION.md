@@ -58,15 +58,62 @@ create subscriptions, send push or emulate a real phone's lock/Focus/sound behav
 
 This documentation-only evidence follow-up uses `[skip ci]`: it does not redeploy
 the already tested application. The live build identity remains the source SHA above.
-Reviewing and publishing this evidence does not turn any physical phone result into PASS.
+Those publication checks alone did not constitute physical phone evidence. The later
+owner-reported phone test below is a separate evidence source.
 
 ## Physical phone results
 
+Session status, 2026-10-15: **PAUSED pending next-session work**. Existing Pages stays
+enabled at `b640bfc9e0caf873faeca36646533f138a3c91ee`; no new application deployment
+is part of this documentation update.
+
 | Platform | Foreground | Background | Locked | Sound | Tap | Mobile data |
 |---|---|---|---|---|---|---|
-| iPhone / iOS / Safari Home Screen PWA | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN |
+| iPhone / iOS / Home Screen PWA (owner report) | NOT RUN | NOT RUN | PASS | PASS, silencing disabled | NOT RUN | NOT RUN |
 | Android / compatible browser | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN |
 
-No successful push delivery is claimed. Follow the README matrix, record versions,
-conditions, timestamps and actual results, and publish sanitized evidence only.
-Desktop Chromium/service-worker and offline crypto checks never substitute for this.
+The owner explicitly reports a real test on 2026-10-15 using the Linux Node.js
+publisher, installed iPhone PWA, valid subscription and browser/vendor push
+infrastructure, without HA, paid push service or a user-operated application backend.
+The CLI still fulfills the Web Push application-server/publisher protocol role.
+HTTP 201, actual Lock Screen notification and audible sound with silencing disabled
+are **PASS (owner-reported)**; the assistant did not independently repeat the test.
+
+The initial JSON export-format issue was corrected manually. Its precise cause and
+transformation were not supplied; no software fix is claimed. iOS Focus/Sleep settings
+initially prevented normal audible/visible presentation. No bypass or guaranteed
+critical-alarm behavior is proved by the later sound/display success.
+
+Exact phone/OS/browser versions, timestamps, latency, trial count and network conditions
+were not supplied. NOT RUN cells above mean no separate observation was supplied;
+they do not negate the locked-screen PASS. Android is NOT TESTED; direct ESP32
+publishing and secure simple pairing are NOT IMPLEMENTED OR TESTED. Reliable repeated
+alerts until acknowledgement are NOT TESTED. No secret or actual subscription data
+is included. Desktop fixtures and HTTP 201 alone never substitute for actual delivery.
+
+## Next-session continuation
+
+1. Review the iPhone observation and limits, including JSON handling and Focus/Sleep.
+2. Investigate an isolated ESP32 Web Push publisher PoC outside production firmware.
+3. Assess HTTPS/TLS, CA/time trust, VAPID, payload encryption, flash/RAM/CPU and security.
+4. Prove real ESP32 publishing before production integration; device operations require
+   separate authorization, not this documentation/pause record.
+5. Test Android and the remaining physical phone/reliability matrix.
+6. Design secure simple phone enrollment without manual JSON; no unauthenticated pairing.
+7. Preserve optional Home Assistant integration and standalone behavior.
+
+No production firmware, flash/OTA, running HA, router, new service or server deployment
+is changed by this session. Documentation-only commits use `[skip ci]`, leaving the
+existing Pages application enabled. Delivery checks for this documentation-only update:
+
+- PASS: `git fetch origin` after approved network access; baseline `ba48e51`, clean
+  `main` with 0/0 divergence. Initial sandbox DNS failure was not an authentication failure.
+- PASS: `python3 scripts/audit_public.py`, exact public Git inventory and staged/worktree
+  secret heuristics/static artifact boundary; private local files were not inspected.
+- PASS: `python3 /tmp/check-push-session-docs.py` across both checkouts: exactly two
+  experiment/seven main Markdown files, 47 relative links/anchors and balanced fences.
+- PASS before commit: final/staged `git diff --check`, scope and secret review. Only
+  README and this validation document change in this repository.
+- NOT RUN: new application tests, browser/phone sends or deployment; runtime code,
+  workflow and deployed PWA remain unchanged. Main Smart Smoker's separate mandatory
+  `task test` gate passed all 90 methods; it is not a new physical phone test.

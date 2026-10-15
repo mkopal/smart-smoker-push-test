@@ -1,7 +1,8 @@
 # Smart Smoker Web Push Test
 
 Temporary public research prototype for real system notifications on locked iPhone
-and Android devices. **No real phone delivery has been verified yet.**
+and Android devices. **PAUSED after owner-reported iPhone Lock Screen and sound PASS
+on 2026-10-15; Android and ESP32 remain unverified.** See [evidence and continuation](VALIDATION.md#physical-phone-results).
 
 - Site: https://mkopal.github.io/smart-smoker-push-test/
 - Repository: https://github.com/mkopal/smart-smoker-push-test
@@ -27,8 +28,15 @@ sequenceDiagram
   Push->>Phone: Wake worker and display system notification
 ```
 
-The PWA does not need to stay open to receive push. This is a platform capability,
-not a successful-device-test claim. See the
+The owner confirms locked-iPhone presentation using the Linux publisher, without HA,
+paid notification service or an application backend, at deployed commit
+`b640bfc9e0caf873faeca36646533f138a3c91ee`. Focus/Sleep initially restricted presentation;
+sound was heard with silencing disabled and an initial JSON format issue was corrected
+manually. This is not proof of a Focus bypass, repeated-alert reliability or a critical
+alarm. Existing Pages stays enabled while development is paused.
+
+The PWA does not need to stay open to receive push as a platform capability; separate
+background/closed-app cases were not supplied in this test report. See the
 [WebKit platform announcement](https://webkit.org/blog/13966/webkit-features-in-safari-16-4/)
 and [Google's overview](https://web.dev/articles/push-notifications-overview).
 The laptop is the publisher here; ESP32 implementation remains a separate unverified
@@ -145,7 +153,8 @@ node publisher.cjs send local/private/vapid.json local/private/android.json
 
 ## Results and failure matrix
 
-All phone outcomes start **NOT RUN**. Keep raw exports and screenshots private. Record
+The owner-reported iPhone locked-screen/sound observations are PASS in VALIDATION;
+all other unobserved scenarios remain **NOT RUN**. Keep raw exports and screenshots private. Record
 date/time/timezone, commit from `build-info.json`, model, OS/browser, installed/tab
 context, locale, permission/Focus/battery settings, phone/publisher network, provider
 result, notification ID, actual display time, sound and tap result. Publish only
