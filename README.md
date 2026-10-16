@@ -1,9 +1,10 @@
 # Smart Smoker Web Push Test
 
 Temporary public research prototype for real system notifications on locked iPhone
-and Android devices. **HARDWARE_VALIDATION_PENDING:** Linux-to-iPhone Lock Screen
-and sound are owner-reported PASS; the isolated ESP32 implementation now passes
-software tests/build, with actual ESP32 and Android delivery unverified. See
+and Android devices. **Isolated ESP32-to-locked-iPhone PoC SUCCESS (2026-10-16):**
+provider HTTP 201 was instrumented; delivery and sound were separately owner-confirmed.
+Production integration remains **NO-GO**; Android and extended reliability remain
+unverified. See [authoritative ESP32 results and roadmap](esp32/FEASIBILITY.md) and
 [evidence and continuation](VALIDATION.md).
 
 - Site: https://mkopal.github.io/smart-smoker-push-test/
@@ -41,9 +42,10 @@ The PWA does not need to stay open to receive push as a platform capability; sep
 background/closed-app cases were not supplied in this test report. See the
 [WebKit platform announcement](https://webkit.org/blog/13966/webkit-features-in-safari-16-4/)
 and [Google's overview](https://web.dev/articles/push-notifications-overview).
-The laptop published the owner-observed notification. An isolated
-[ESP-IDF publisher](esp32/README.md) now has offline crypto tests and a cross-build;
-its runtime remains unverified. The enrollment PWA has no connection to the smoker.
+The laptop published the 2026-10-15 owner-observed notification. The isolated
+[ESP-IDF publisher](esp32/README.md) subsequently delivered one notification with
+sound to the locked iPhone on 2026-10-16. The enrollment PWA has no direct connection
+to the smoker; the isolated publisher uses its privately provisioned subscription.
 
 ## Local setup and checks
 

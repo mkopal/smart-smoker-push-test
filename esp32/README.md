@@ -1,11 +1,26 @@
 # ESP32 direct Web Push bench publisher
 
-Status: **HARDWARE_VALIDATION_PENDING**. Standalone ESP-IDF **5.5.5**, ESP32-WROOM-32D,
-4 MB flash, no PSRAM. This is separate from ESPHome **2026.9.1** production firmware.
-[Feasibility, resources and acceptance gates](FEASIBILITY.md) distinguish build facts
-from estimates and unperformed device tests. No real send, serial access or upload
-was performed during development. Existing static enrollment and Linux publishing
-remain unchanged.
+Status: **isolated end-to-end PoC SUCCESS on 2026-10-16; production integration
+NO-GO pending engineering and validation**. Diagnostic implementation `3a87c84`,
+branch `esp32-direct-web-push-poc`; standalone ESP-IDF **5.5.5**, HW-395 /
+ESP-WROOM-32D, ESP32-D0WD-V3 revision 3.1, 4 MB flash, no PSRAM.
+
+The ESP32 connected to Wi-Fi after manual CONNECT, obtained IPv4, synchronized
+SNTP, passed readiness checks and published an encrypted, VAPID-authenticated push
+via HTTPS/TLS. Firmware reported **HTTP 201 provider acceptance**. Separately, the
+owner explicitly confirmed **locked-iPhone delivery and audible sound**. The board
+was USB-only with no control hardware attached and no HA dependency. This is one
+successful test, not a delivery guarantee or completed ESPHome integration.
+
+The authoritative [measurement report and next engineering phase](FEASIBILITY.md)
+contains sanitized diagnostics, real-input build identity, measured heap/stack/wall
+time, initial Wi-Fi reason 203 and remaining validation gates. The main project's
+[restoration record](https://github.com/mkopal/smart-smoker/blob/esp32-direct-web-push-poc/docs/ESP32_BACKUP_RESTORE.md) documents verified full 4 MB recovery and
+owner-confirmed original HTTP UI return; HA/API/entity/OTA checks were not explicitly
+verified. This documentation update performed no new serial, flash, reset, OTA,
+push or live infrastructure operation. Existing static EN/CS enrollment and Linux
+publishing remain unchanged. Procedures below apply only to separately authorized
+future trials; historical development-only wording is scoped to those earlier tasks.
 
 ## Build and offline tests
 

@@ -1,5 +1,53 @@
 # Validation evidence
 
+## Successful isolated ESP32 PoC and full restoration — 2026-10-16
+
+Documentation finalization on `esp32-direct-web-push-poc`; clean initial baselines:
+main `880a80a`, experiment `3a87c84`. Both origins fetched successfully after retry
+outside sandbox DNS restrictions, with no remote divergence. Evidence comes from
+the owner's supplied sanitized firmware/build/restore results and explicit phone/UI
+observations, not new hardware execution or private-artifact inspection by this task.
+Earlier preparation/software-only NOT RUN entries below retain their original scope.
+
+| Verification | Actual result / evidence boundary |
+|---|---|
+| Wi-Fi / IPv4 / SNTP and publish readiness | PASS after manual CONNECT; initial reason 203 association failure blocked publishing; root cause unknown; no automatic reconnect tested |
+| Real ESP32 Web Push encryption / VAPID / HTTPS | PASS for one send using diagnostic implementation `3a87c84`, IDF 5.5.5, HW-395 / ESP-WROOM-32D, ESP32-D0WD-V3 revision 3.1, 4 MB, no PSRAM |
+| Provider acceptance | **PASS: HTTP 201**, instrumented firmware result |
+| Locked iPhone delivery | **PASS: explicitly owner-confirmed**, independently of provider acceptance |
+| Audible iPhone notification | **PASS: explicitly owner-confirmed**, no general iOS sound guarantee |
+| Isolated heap/stack/wall time and real-input build | Recorded in the [authoritative measurement report](esp32/FEASIBILITY.md); wall time is not CPU utilization and static memory is not runtime heap |
+| Production full raw flash restore | **Verified PASS**, esptool 5.3.1 full 4 MB write/verify/readback/cmp/SHA-256; [canonical backup/restoration record](https://github.com/mkopal/smart-smoker/blob/esp32-direct-web-push-poc/docs/ESP32_BACKUP_RESTORE.md) |
+| Original HTTP UI returned | **Verified PASS (owner-confirmed)** |
+| HA native API reconnect / entity updates / OTA availability / authenticated OTA transfer | **NOT VERIFIED** in this test record |
+| Extended reliability / automatic recovery / Android / multiple phones / secure production pairing-storage / integrated ESPHome resources | **NOT VERIFIED**; production integration remains **NO-GO** |
+| New device, serial, flash, reset, OTA, push or live infrastructure operation in this documentation task | **NOT RUN: prohibited**; board was USB-only without control hardware during the reported experiment |
+
+The isolated PoC is successful. It does not complete production integration or
+provide delivery/safety guarantees. Next engineering work is bounded Wi-Fi reconnect
+and SNTP readiness, followed by the report's prioritized roadmap. Production source,
+build configuration, partitions, private credentials and firmware artifacts remain
+unchanged. Existing EN/CS UI behavior is preserved.
+
+Checks used the existing Node 22.20.0 via
+`export PATH="$HOME/.nvm/versions/node/v22.20.0/bin:$PATH"`; no dependency installation.
+
+| Experiment check | Actual result |
+|---|---|
+| `npm test` | PASS: publisher, enrollment, localization and worker behavior offline |
+| `npm run test:library` | PASS: real encryption/decryption, wrong-auth rejection, ES256 signature and private CLI lifecycle offline; sandbox initially blocked Node subprocess with EPERM, approved rerun outside sandbox passed; no push sent |
+| `python3 -m unittest discover -s tests -v` | PASS: all 11 methods, including private provisioning and public artifact guards |
+| `python3 build.py` | PASS: exactly 11 approved static public artifact files; local build only, no deployment |
+| `python3 scripts/audit_public.py` | PASS: exact public Git inventory, index/worktree secret heuristics and static artifact boundary |
+
+| Documentation check | Actual result |
+|---|---|
+| `python3 /tmp/check-push-docs.py` (temporary host-only review helper) | PASS: 10 Markdown-only changed files, 72 local/cross-repository links including anchors, balanced fences, 25 Bash blocks syntax checked without executing their commands |
+| `git diff --check` and `git diff --cached --check` | PASS: no whitespace errors; final worktree/staged documentation-only scope reviewed |
+| Security / artifact review | PASS: repository index/worktree heuristics and changed content reviewed; no private credentials, network address, backup paths, generated firmware or runtime configuration staged. Heuristics are not an exhaustive secret audit |
+| Firmware compile / device tests | N/A for this documentation-only change; no new firmware build, device operation, remote CI or deployment result claimed |
+
+
 ## Safe ESP32 serial diagnostics — 2026-10-16
 
 Baseline `725231b`, clean `esp32-direct-web-push-poc`; origin fetched before edits

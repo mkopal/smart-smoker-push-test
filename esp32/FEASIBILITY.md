@@ -1,16 +1,144 @@
 # Direct ESP32 Web Push feasibility and resource report
 
-Date: 2026-10-16. Baselines: experiment `d8ac39d`, main firmware `579cc59`.
-Both checkouts were initially clean; origin was fetched before edits. No production
-firmware/configuration/assets changed. No physical device was contacted.
+Test date: **2026-10-16**. Experimental branch: `esp32-direct-web-push-poc`.
+Diagnostic implementation: **`3a87c84`**. This is the authoritative detailed PoC
+measurement record; the main project owns the full-flash restoration record.
 
-**GO for a separately authorized isolated USB bench trial after private provisioning,
-backup and image review. NO-GO for production integration.** Software crypto tests
-and an actual Xtensa build pass; provider acceptance of this ESP32 HTTP/1.1 client,
-locked-phone delivery, sound, runtime heap, timeouts and recovery remain untested.
-The previous owner-reported Linux-to-iPhone result is not ESP32 evidence.
+**Isolated direct Web Push PoC: SUCCESS (one end-to-end test).
+Production ESPHome integration: NO-GO pending engineering and validation.**
+
+## Successful real-device experiment — 2026-10-16
+
+Evidence supplied by the owner: sanitized instrumented firmware diagnostics and
+real-input build measurements below, plus explicit owner confirmation of locked
+phone delivery and sound. Documentation finalization did not repeat device tests,
+read private inputs or remeasure the firmware. Earlier software-only records below
+are historical and are superseded by this section for this single successful run.
+
+### Hardware, environment and separate verification results
+
+ESP32 HW-395 / ESP-WROOM-32D; chip ESP32-D0WD-V3 revision 3.1; **4 MB flash,
+no PSRAM**; ESP-IDF **5.5.5**. The device was physically connected only by USB:
+no heater, smoke generator, relays, thermocouples or other control hardware attached.
+The isolated publisher has no Home Assistant dependency.
+
+| Verification | Actual result | Evidence / scope |
+|---|---|---|
+| Wi-Fi, IPv4 and clock readiness | PASS after manual CONNECT: Wi-Fi connected, IPv4 acquired, SNTP synchronized, all publishing preconditions passed | Firmware readiness diagnostics supplied by owner; initial association failure below |
+| Web Push encryption, VAPID and HTTPS/TLS | PASS for the actual push provider | Successful encrypted publish and provider acceptance with diagnostic implementation `3a87c84` |
+| Provider acceptance | **PASS: HTTP 201** | Instrumented ESP32 result; acceptance alone does not establish phone delivery |
+| Locked iPhone notification | **PASS: delivered** | Explicitly confirmed by owner, separately from the provider log |
+| Audible iPhone notification | **PASS: sound heard** | Explicitly confirmed by owner; no guarantee for other iOS settings or conditions |
+| Isolated runtime resources | PASS for this send within the measured heap/stack resources | Diagnostics below; no integrated ESPHome or repeated-cycle resource result |
+| Original production-image recovery | **PASS: full raw flash restored byte-for-byte; original HTTP UI returned** | [Canonical restoration record](https://github.com/mkopal/smart-smoker/blob/esp32-direct-web-push-poc/docs/ESP32_BACKUP_RESTORE.md); HA/API/entity/OTA checks remain unverified |
+
+This demonstrates direct ESP32 publishing is technically feasible on this board,
+including real encryption/authentication interoperability and locked-iPhone sound.
+It establishes one successful end-to-end proof of concept, not reliable or guaranteed
+delivery, production readiness, or a safety-critical alert channel.
+
+### Wi-Fi association failure and manual recovery
+
+The first connection attempt failed and publishing was correctly blocked:
+
+```text
+Wi-Fi disconnected reason=203; IPv4 readiness cleared. No retry.
+publish_blocker=wifi_disconnected
+```
+
+In the [pinned ESP-IDF 5.5.5 reason definitions](https://github.com/espressif/esp-idf/blob/v5.5.5/components/esp_wifi/include/esp_wifi_types_generic.h),
+203 is `WIFI_REASON_ASSOC_FAIL` (association failure). The underlying root cause
+is unknown. A manual `CONNECT` subsequently connected Wi-Fi and obtained IPv4;
+SNTP synchronization followed. Final readiness was:
+
+```text
+STATUS wifi_started=yes wifi_connected=yes ip_ready=yes sntp_sync_seen=yes clock_valid=yes publishing_enabled=yes recipient_retired=no subscription_expiration=not_provided publish_blocker=ready
+```
+
+No automatic reconnect exists. This manual recovery does not validate automatic
+recovery, prolonged outages or reboot handling. Design and test bounded exponential
+backoff, readiness transitions and sanitized observability before integration.
+
+### Actual SEND diagnostics and interpretation
+
+```text
+heap stage=before_crypto free=217920 largest=110592 minimum=217920 stack_free=10124 minimum_scope=crypto
+heap stage=after_crypto free=217744 largest=110592 minimum=214296 stack_free=7020 minimum_scope=crypto
+heap stage=before_tls free=217744 largest=110592 minimum=217744 stack_free=7020 minimum_scope=https
+heap stage=tls_connected free=183452 largest=110592 minimum=175792 stack_free=7020 minimum_scope=https
+Provider accepted (201); phone delivery NOT confirmed.
+timing crypto_wall_us=899340 network_wall_us=3352191
+heap stage=after_cleanup free=217076 largest=110592 minimum=175792 stack_free=7020 minimum_scope=https
+```
+
+| Runtime measurement | Observed value | Interpretation |
+|---|---|---|
+| Minimum free heap during HTTPS | **175,792 B** | Observed HTTPS-window minimum, not an integrated-production capacity guarantee |
+| Largest reported free block | **110,592 B** | At reported stages; not a continuously measured minimum largest block |
+| Stack free watermark during operation | **7,020 B** | Reported task watermark |
+| Free heap before crypto / after cleanup | **217,920 / 217,076 B** | One send; insufficient evidence for leak, fragmentation or long-term recovery conclusions |
+| Crypto wall time | **899,340 microseconds (~0.90 s)** | Elapsed time, not CPU execution/utilization |
+| Network wall time | **3,352,191 microseconds (~3.35 s)** | Elapsed network phase, not phone-delivery latency |
+| Combined measured phases | **4,251,531 microseconds (~4.25 s)** | Sum of the two measured phases, not whole-session or end-to-end delivery time |
+
+The serial wording `phone delivery NOT confirmed` intentionally describes what the
+publisher can verify. Actual iPhone delivery and sound were separately confirmed by
+the owner. These measurements belong to the isolated PoC, **not ESPHome integration**.
+CPU utilization remains unmeasured.
+
+### Real-input diagnostic build used in the successful test
+
+| Build measurement | Result |
+|---|---|
+| Application binary | **908,032 B** |
+| Application SHA-256 | `4cda3809450c092ab46c41409eefe1d6de964e5269dab5b5a9d3ec837ff72a6b` |
+| Static DRAM | **35,196 B** |
+| Static IRAM | **97,271 B** |
+| Smallest application partition / free space | **1,835,008 B / 926,976 B (~50.5%)** |
+
+Static memory is a linker/build allocation, not free runtime heap. These real-input
+values supersede earlier synthetic image sizes for the tested image only; credential
+lengths and build metadata can change size. No binary or private input is published.
+
+### Still unverified
+
+- Reliability over long periods and many notifications; leak/fragmentation trends.
+- Device reboot, prolonged Wi-Fi outages, automatic reconnect and recovery.
+- Retry/backoff, ambiguous timeouts and real-world HTTP 429/5xx behavior.
+- Subscription expiry, rotation and invalidation, persistent recipient lifecycle.
+- Multiple enrolled phones and Android delivery.
+- Production credential storage and secure device-to-phone enrollment.
+- Safe ESPHome integration alongside API, OTA, web UI, sensors and planned
+  temperature monitoring; concurrent resources and scheduling.
+- Delivery guarantees and audible presentation under all iOS conditions.
+
+Web Push remains a non-safety-critical, best-effort notification mechanism. Heater
+and smoke safety require independent controls and physical protections.
+
+## Prioritized next engineering phase (proposal only)
+
+1. Robust Wi-Fi reconnect with bounded exponential backoff, SNTP readiness handling
+   and observable failure/recovery states; test these before production integration.
+2. Credential protection, secure device-to-phone enrollment, subscription lifecycle
+   and multiple-recipient support.
+3. Safe asynchronous publishing that does not block temperature control or other
+   important ESP32 tasks; review cooperative DNS/TLS deadline limits below.
+4. ESPHome integration architecture preserving existing API/OTA/read-only web UI,
+   standalone operation and optional HA.
+5. Runtime heap, largest block, stack, timing and CPU measurements with all production
+   features running, including sensors and planned temperature monitoring.
+6. Repeated delivery, failure injection, reboot, network outage, Android and long-term
+   stability tests against the acceptance gates below.
+7. Temperature alert semantics, deduplication and application-level acknowledgements.
+8. Document Web Push delivery limits, iOS Focus/silent behavior and non-guaranteed sound;
+   preserve English/Czech onboarding and notifications.
+
+This roadmap is not implemented. No mandatory HA dependency, paid push provider or
+owner-operated backend is justified by this successful direct-publishing test.
 
 ## Serial diagnostics update — 2026-10-16
+
+Historical software-only evidence, before the successful device test above.
 
 Current software adds read-only STATUS, specific publish refusal reasons, sanitized
 Wi-Fi/IP/SNTP events and numeric results for a single CONNECT request; see
@@ -44,8 +172,8 @@ Small project-owned protocol assembly is still security-sensitive and needs revi
 
 | Requirement | Selected implementation / limit | Evidence and remaining gate |
 |---|---|---|
-| HTTPS POST | IDF `esp_http_client`, one async client, one recipient | Built with full publisher retained; actual Apple endpoint NOT RUN |
-| Chain, hostname, SNI | `esp_crt_bundle_attach`, full SDK CA bundle, hostname verification enabled; URL hostname supplies SNI through ESP-TLS | Source/config review; invalid/expired CA and provider TLS tests NOT RUN |
+| HTTPS POST | IDF `esp_http_client`, one async client, one recipient | Built with full publisher retained; actual provider accepted HTTP 201 in the successful test above |
+| Chain, hostname, SNI | `esp_crt_bundle_attach`, full SDK CA bundle, hostname verification enabled; URL hostname supplies SNI through ESP-TLS | Actual provider TLS succeeded above; invalid/expired CA failure tests NOT RUN |
 | VAPID | P-256 `mbedtls_ecdsa_sign`, SHA-256, JWT ES256 fixed 32-byte r + 32-byte s; aud is endpoint origin, exp now+1 h, public contact | Independent Node signature/claims verification PASS; no DER signature on wire |
 | Payload encryption | P-256 key generation/ECDH, `mbedtls_hkdf` SHA-256, `mbedtls_gcm_crypt_and_tag` AES-128-GCM | RFC 8291 known-answer vector and independent Node decryption PASS |
 | Framing | `aes128gcm`, 16-byte salt, rs=4096, 65-byte ephemeral public key, one final record with delimiter 0x02 and 16-byte tag | Deterministic full-body comparison, 1/256 B bounds, tamper/wrong-auth tests PASS |
@@ -77,8 +205,9 @@ Primary references:
 
 The Node experiment uses HTTP/1.1 successfully according to prior owner evidence.
 RFC 8030 specifies HTTP/2 as baseline; IDF `esp_http_client` here speaks HTTP/1.1.
-Do not advertise `h2` ALPN on an HTTP/1.1 implementation. The exact Apple Web Push
-endpoint must accept this client or the bench result is NO-GO. Do not substitute the
+Do not advertise `h2` ALPN on an HTTP/1.1 implementation. The actual Web Push
+provider accepted this client in the single successful test above; other providers
+and future compatibility remain unverified. Do not substitute the
 native APNs API, disable TLS verification or add an external relay to make it pass.
 
 IDF 5.5.5 discards callback return values at header/body dispatch. The callback
@@ -107,6 +236,8 @@ freed, without claiming every internal buffer is securely erased. In-memory 404/
 retirement is lost at reboot; persistent lifecycle is a production gate.
 
 ## Actual build evidence versus unmeasured resources
+
+Historical synthetic-build evidence, before the successful device test above.
 
 Reference build: ESP32, IDF 5.5.5, Xtensa esp-14.2.0_20260121, mbedTLS 3.6.6,
 Node 22.20.0 on Linux; synthetic inputs with runtime network/send disabled. Full
@@ -167,11 +298,10 @@ Push remains a best-effort notification, independent of physical thermal protect
 
 ## Explicit acceptance gates
 
-Bench trial is conditional GO only after the owner authorizes the exact backup,
-USB operation and restoration procedure in [README](README.md). Require actual
-valid-TLS provider acceptance, locked iPhone presentation and sound, successful
-fresh send after network recovery, and a restorable known-good full-flash backup.
-If HTTP/TLS/provider compatibility or safe recovery fails, stop at NO-GO.
+The single isolated trial above passed provider acceptance, locked-iPhone delivery
+and sound, manual connection recovery and full-flash restoration. Automatic recovery
+and the broader failure matrix remain unverified. Any new device trial still needs
+separate authorization under the procedure in [README](README.md).
 
 Production remains NO-GO until **all** these gates pass:
 
@@ -200,6 +330,7 @@ Production remains NO-GO until **all** these gates pass:
    queue/backoff/Retry-After/ambiguous-timeout handling, independent security review.
    There is no queue or persistent lifecycle in this bench PoC.
 
-All runtime/phone/failure gates are **NOT RUN** here. Boot/restart/network/probe/output
+The single isolated send does not close these production gates: integrated runtime,
+repeated-phone and failure-matrix validation remain **NOT RUN**. Boot/restart/network/probe/output
 safety tests for production are not replaced by the host tests. Actuator/probe
 behavior is N/A to the isolated publisher because it has none.
