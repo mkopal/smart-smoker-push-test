@@ -22,6 +22,8 @@ esp32/provision.cjs
 esp32/sdkconfig.defaults
 esp32/tests/CMakeLists.txt
 esp32/tests/driver.cpp
+esp32/tests/serial.cpp
+esp32/tests/stubs/sdk.h
 esp32/tests/test.cjs
 library-test.js
 package-lock.json

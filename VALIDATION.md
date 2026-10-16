@@ -1,5 +1,37 @@
 # Validation evidence
 
+## Safe ESP32 serial diagnostics — 2026-10-16
+
+Baseline `725231b`, clean `esp32-direct-web-push-poc`; origin fetched before edits
+(after sandbox DNS retry). No main-repository or production configuration changes.
+Owner reports physical PoC flash/boot and HEAP around 218 KB, with generic SEND
+refusal and silent CONNECT. This is owner-reported prior-image evidence with
+unrecorded exact image/phase/units; no physical validation is repeated by this task.
+
+Added read-only STATUS and distinct publish blockers, station/IP-loss tracking,
+SNTP sync observation, numeric single-connect results and fixed startup-operation
+errors. SDK logs remain suppressed. No automatic reconnect/send or new network
+configuration is introduced; synthetic builds keep network disabled but expose the
+console. Clock plausibility and observed synchronization are deliberately separate.
+
+| Executed check | Actual result |
+|---|---|
+| Public-only isolated source snapshot / synthetic provisioning | PASS: under local/diagnostics-validation; no original input regeneration, private build overwrite or private credential output |
+| `python3 local/diagnostics-validation/esp32/build.py host` with Node 22.20.0 | PASS: RFC 8291 vector, independent decryption/ES256 checks and existing negative/boundary cases; actual serial dispatcher and event adapter against host-only SDK stand-ins; every blocker/expiry/time boundary, tiny-buffer rejection, read-only repeated STATUS, single CONNECT success/failure, no reconnect/send on events, zero/missing IP, IP loss/disconnection/stop, synthetic mode and NVS-startup failure; public secret canaries absent from output |
+| `npm test` | PASS: existing publisher/enrollment/localization/worker offline suite |
+| `npm run test:library` | PASS: existing real web-push crypto and private CLI lifecycle tests; approved offline execution outside sandbox for known Node subprocess restriction; no notification sent |
+| `python3 -m unittest discover -s tests -v` with Node 22.20.0 | PASS: 11 Python tests including public artifact/private provisioning guards |
+| Isolated `python3 esp32/build.py firmware` and `size` | PASS: exact IDF 5.5.5 Xtensa build, .bin 907,904 B, linker total 907,781 B, static DRAM 35,196 B, IRAM 97,271 B; both 1,835,008 B slots fit, headroom 927,104 B / 50.52% |
+| Protected-file fingerprints before/after checks | PASS: original experiment local/private, local/esp32-input, local/esp32-build and main local/device file membership/content/size/permissions unchanged; values suppressed |
+| `python3 scripts/audit_public.py`, final diff/whitespace review | PASS: exact public Git inventory and staged/worktree secret heuristics; static artifact boundary, Markdown links/fences/Bash syntax; final reviewed source/config matches the isolated cross-build |
+| Physical serial/Wi-Fi/SNTP, flash/reset/OTA, live config, actual push | NOT RUN: explicitly prohibited. Host stand-ins do not establish runtime networking, actual refusal cause or delivery |
+
+New generated inputs/builds use synthetic disabled sending. The existing private
+configuration, backups and previous device images remain untouched. No production
+readiness, hardware acceptance, key rotation or new deployment is claimed. Prior
+security/recovery follow-ups below remain applicable; future device work requires
+separate explicit authorization. Production integration remains NO-GO.
+
 ## Single-device recovery preparation — 2026-10-16
 
 Documentation-only follow-up, baseline `d9c7ae3`, initially clean working branch;

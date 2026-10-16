@@ -1,6 +1,7 @@
 'use strict';
 const assert = require('assert/strict');
 const crypto = require('crypto');
+const path = require('path');
 const { spawnSync } = require('child_process');
 const { generate } = require('../provision.cjs');
 const executable = process.argv[2];
@@ -93,3 +94,16 @@ for (const endpoint of ['http://web.push.apple.com/a', 'https://evil.example/a',
 }
 assert.throws(() => generate(config, { ...enrollment, subscription: { ...enrollment.subscription, expirationTime: 1 } }, wifi, true));
 console.log('PASS: embedded crypto cross-decryption, ES256 verification, deterministic framing, tamper/invalid/boundary cases, provisioning and status/expiration gates (offline)');
+
+const serial = spawnSync(path.join(path.dirname(executable), 'serial_tests'), [], { encoding: 'utf8' });
+assert.equal(serial.status, 0, serial.stderr);
+assert(!serial.stdout.includes('PRIVATE_'), 'No private canary may reach serial output');
+for (const expected of ['STATUS wifi_started=', 'sntp_sync_seen=yes', 'clock_valid=yes',
+  'subscription_expiration=unknown_until_clock', 'subscription_expiration=valid',
+  'Publish refused: Wi-Fi station is not started', 'reason=202', 'reason=-1',
+  'result=0x00003001 accepted=no', 'result=0x00000000 accepted=yes',
+  'SNTP synchronization observed', 'Startup failed operation=nvs_init result=0x0000110d',
+  'CONNECT refused: network disabled', 'publish_blocker=publishing_disabled']) {
+  assert(serial.stdout.includes(expected), expected);
+}
+console.log('PASS: actual serial/event adapter, STATUS read-only behavior, independent readiness/refusal causes, numeric SDK results and output privacy');

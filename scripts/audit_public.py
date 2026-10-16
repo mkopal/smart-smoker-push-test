@@ -17,6 +17,7 @@ PUBLIC_FILES = {
     'esp32/main/main.cpp', 'esp32/main/push_crypto.cpp', 'esp32/main/push_crypto.h',
     'esp32/main/policy.cpp', 'esp32/main/policy.h',
     'esp32/tests/CMakeLists.txt', 'esp32/tests/driver.cpp', 'esp32/tests/test.cjs',
+    'esp32/tests/serial.cpp', 'esp32/tests/stubs/sdk.h',
     'tests/test_site.py', 'web/app.js', 'web/i18n.js', 'web/index.html',
     'web/manifest.webmanifest', 'web/style.css', 'web/sw.js',
 }

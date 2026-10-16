@@ -10,6 +10,32 @@ and an actual Xtensa build pass; provider acceptance of this ESP32 HTTP/1.1 clie
 locked-phone delivery, sound, runtime heap, timeouts and recovery remain untested.
 The previous owner-reported Linux-to-iPhone result is not ESP32 evidence.
 
+## Serial diagnostics update — 2026-10-16
+
+Current software adds read-only STATUS, specific publish refusal reasons, sanitized
+Wi-Fi/IP/SNTP events and numeric results for a single CONNECT request; see
+[diagnostic contract and isolated build recipe](README.md#safe-serial-diagnostics).
+SDK logs stay disabled; no network identity, key or subscription values are printed.
+Existing crypto, TLS verification, retries/deadlines, partition table and private
+inputs are unchanged. The console remains available after failed initialization or
+in the disabled synthetic build. Station/IP readiness is cleared on loss/stop.
+
+New isolated synthetic cross-build: **907,904 B** .bin, linker total **907,781 B**,
+static DRAM **35,196 B**, IRAM **97,271 B**. Two 1,835,008 B slots give **927,104 B
+(50.52%)** headroom. These supersede the historical image-size table below for the
+new source, without replacing any private known-good image. Real credential lengths
+and build metadata can change image size. Runtime heap/stack/concurrency are not
+measured by a linker report.
+
+The owner now reports successful physical flash/boot and HEAP output near **218 KB**
+free heap, but SEND was refused by the old generic precondition check; CONNECT was
+silent and Wi-Fi/SNTP readiness was not visible. This is limited **owner-reported**
+evidence for a prior image, not an instrumented observation by this task or proof of
+actual push acceptance/delivery. Exact firmware identity, heap units/phase and time
+were not supplied. Root cause is not inferred from this report. New diagnostic
+runtime, HTTPS/phone delivery and recovery remain pending separate authorization.
+The historical NOT RUN entries below retain their original date/scope.
+
 ## Implementation selection and source evidence
 
 Use the already installed IDF 5.5.5 and its **mbedTLS 3.6.6** primitives, with no new

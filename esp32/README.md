@@ -54,6 +54,83 @@ RFC 8291 section 5 known-answer example; the `WP_TEST` fixed-key path exists onl
 the host target. Host tests do not open a network connection. The firmware target
 has no fixed ephemeral-key or salt override.
 
+## Safe serial diagnostics
+
+After a separately authorized deployment, the 115200-baud console accepts `STATUS`,
+`HEAP`, `CONNECT` and `SEND`. **This software task does not open a serial port, reset
+or flash a device, connect to Wi-Fi, or send a push.** Boot still makes at most the
+existing single Wi-Fi connect request in an enabled build, never an automatic send
+or reconnect loop. The initial IP wait is bounded to 30 seconds; commands become
+available after that wait, or immediately after a startup failure/synthetic skip.
+
+`STATUS` is read-only and also prints once when the console becomes available.
+It reads event flags and system time; it does not connect, resynchronize time, retry,
+create crypto/TLS objects, consume SNTP status or send anything. It works even when
+network initialization failed or publishing is disabled in the synthetic build.
+
+| STATUS field | Meaning |
+|---|---|
+| `wifi_started` | Station-start event observed, cleared on station stop |
+| `wifi_connected` | Association event observed; not proof of an IP/internet connection |
+| `ip_ready` | Nonzero IPv4 acquisition event observed; cleared on loss, disconnection or stop; no address printed |
+| `sntp_sync_seen` | At least one SNTP sync callback since boot; retained across disconnection and repeated STATUS calls; not a clock freshness/accuracy/authentication guarantee |
+| `clock_valid` | Current epoch satisfies the unchanged plausible range 1760000000..4102444800 seconds; not proof of trustworthy time |
+| `publishing_enabled` | Existing build configuration gate; STATUS never changes it |
+| `recipient_retired` | In-memory 404/410 retirement until restart; no change to persistence |
+| `subscription_expiration` | `not_provided`, `unknown_until_clock`, `valid`, `expired` or `invalid`; no subscription timestamp printed; absent expiry does not promise permanent validity |
+| `publish_blocker` | First failing precondition, or `ready`; readiness alone does not send or prove provider/phone delivery |
+
+Refusal priority is publishing disabled, retired recipient, station not started,
+station disconnected, IPv4 not ready, invalid clock, invalid expiration metadata,
+then expired subscription. SEND prints the specific fixed English reason rather
+than the old generic refusal. STATUS exposes all flags when several conditions fail.
+The SEND rate limit remains 60 seconds; use STATUS while waiting. A plausible clock
+without an observed SNTP callback retains the previous publishing eligibility; the
+callback flag is diagnostic and does not add a new synchronization requirement.
+
+Project messages report station start/stop/association/disconnection (numeric IDF
+reason, `-1` if event data is unavailable), IP acquisition/loss and SNTP observation.
+`CONNECT` calls `esp_wifi_connect()` once and prints its numeric hex return code and
+`accepted=yes/no`; an accepted request is not a connection or IP result. Disabled
+builds refuse CONNECT without calling Wi-Fi. Startup failures print a fixed operation
+identifier and numeric SDK result. No event callback retries or sends automatically.
+For reason/error meanings use the pinned IDF 5.5.5 definitions, not guesses about
+credentials based on one code. See [Wi-Fi API](https://docs.espressif.com/projects/esp-idf/en/v5.5.5/esp32/api-reference/network/esp_wifi.html).
+
+SDK logging remains disabled at compile/runtime. Project diagnostics accept only
+readiness flags, fixed strings and numeric status/reason codes: no SSID/password,
+MAC/IP address, VAPID key, subscription endpoint/auth, payload or SNTP server identity
+is printed. Host tests compile actual command dispatch and event callbacks against
+SDK stand-ins, verify read-only STATUS/single CONNECT/no notification behavior and
+check that public private-data canaries never reach serial output. SDK stand-ins
+are not linked into firmware and do not prove physical Wi-Fi/SNTP behavior.
+
+To reproduce the diagnostics build without overwriting private inputs or known-good
+images, use an isolated public-source snapshot **after committing the source**:
+
+```bash
+cd /home/mkopal/Projects/git/smart-smoker-push-test
+export PATH="$HOME/.nvm/versions/node/v22.20.0/bin:$PATH"
+set -euo pipefail
+umask 077
+mkdir -p local
+SMOKER_DIAGNOSTICS_DIR="$(mktemp -d "$PWD/local/diagnostics-check-XXXXXX")"
+git archive HEAD esp32 publisher.cjs | tar -x -C "$SMOKER_DIAGNOSTICS_DIR"
+(
+  cd "$SMOKER_DIAGNOSTICS_DIR"
+  node esp32/provision.cjs --synthetic
+  python3 esp32/build.py host
+  python3 esp32/build.py firmware
+  python3 esp32/build.py size
+)
+```
+
+This creates new synthetic inputs and a non-sending firmware in the new ignored
+directory; it does not alter `local/esp32-input`, `local/private`, existing build
+artifacts or backups. A later private-input build changes image size and still needs
+separate review/authorization before deployment. Never dump a generated private
+header or generated production source into diagnostic output.
+
 ## Development credentials for a later authorized trial
 
 Reuse **development-only** VAPID credentials and the actual version-1 enrollment
