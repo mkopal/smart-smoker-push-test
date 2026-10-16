@@ -1,7 +1,11 @@
 # Experimental security boundary
 
 The GitHub Pages site is static. It has no registration upload API, database, backend
-handler or connection to an ESP32. Only the owner-run local CLI sends notifications.
+handler or connection to an ESP32. The owner-run Linux CLI sends notifications;
+the isolated [ESP32 bench publisher](esp32/README.md) can do so only after separately
+authorized private provisioning and hardware deployment. It has no configuration
+HTTP server. Its private firmware images embed development keys/subscriptions/Wi-Fi
+credentials; do not distribute them. Production secure pairing/storage is unresolved.
 Never put a VAPID private key in the browser, a URL, Git, GitHub Secrets, Actions logs,
 an issue or a screenshot. Only the public VAPID key is entered in the page.
 

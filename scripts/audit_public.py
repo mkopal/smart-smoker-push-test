@@ -10,6 +10,13 @@ PUBLIC_FILES = {
     'SECURITY.md', 'VALIDATION.md', 'PUBLIC_FILES.txt', 'build.py', 'package.json',
     'package-lock.json', 'publisher.cjs', 'library-test.js', 'tests.js',
     'scripts/catalogs.py', 'scripts/audit_public.py', 'scripts/browser-test.cjs',
+    'tests/test_esp32.py',
+    'esp32/CMakeLists.txt', 'esp32/README.md', 'esp32/FEASIBILITY.md',
+    'esp32/build.py', 'esp32/provision.cjs', 'esp32/sdkconfig.defaults',
+    'esp32/partitions.csv', 'esp32/main/CMakeLists.txt',
+    'esp32/main/main.cpp', 'esp32/main/push_crypto.cpp', 'esp32/main/push_crypto.h',
+    'esp32/main/policy.cpp', 'esp32/main/policy.h',
+    'esp32/tests/CMakeLists.txt', 'esp32/tests/driver.cpp', 'esp32/tests/test.cjs',
     'tests/test_site.py', 'web/app.js', 'web/i18n.js', 'web/index.html',
     'web/manifest.webmanifest', 'web/style.css', 'web/sw.js',
 }
