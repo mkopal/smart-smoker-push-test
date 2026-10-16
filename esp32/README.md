@@ -93,80 +93,55 @@ Do not distribute this firmware.
 
 ## Exact future bench procedure — separate explicit authorization required
 
-**Do not execute device commands in this software task.** Use USB bench power,
-with all heater/smoke/mains control connections physically disconnected. This image
-contains no project GPIO, sensor, heater or smoke driver; it has no HTTP server,
-ESPHome API or OTA. It replaces the normal monitoring application during the trial.
-Do not upload it through production OTA: the standalone partition layout is different.
+There is only one working HW-395. **Do not execute device commands in this software
+preparation task.** The canonical [single-device backup/restoration procedure](https://github.com/mkopal/smart-smoker/blob/esp32-direct-web-push-poc/docs/ESP32_BACKUP_RESTORE.md)
+supersedes the earlier abbreviated read/write examples here. Use the production
+project's pinned esptool 5.3.1 for that procedure. Its backup, write, verify and reboot
+phases must be covered by explicit owner authorization, with private logs and safe
+bench power. One authorization can cover named phases; do not ask again if already granted.
 
-1. Record owner-confirmed board/4 MB flash, current production commit, known-good
-   running firmware evidence, existing partition table, private configuration and
-   checksums of known-good factory/OTA binaries. Preserve the main checkout and its
-   existing private artifacts. A host HEAD is not proof of running firmware identity.
-2. Obtain explicit owner authorization for **USB reset/readback, outage, experimental
-   flash and restoration**, naming the port, image and return-to-production plan.
-   The commands below are a proposed procedure, not authorization.
-3. After that authorization, back up the **entire** flash to an owner-only file. This
-   includes NVS and production credentials; never publish it. Stop if readback fails,
-   or if security eFuses/encryption make this restoration method inappropriate.
+1. Complete the canonical preflight and two matching full-flash readbacks, with live
+   4 MB capacity/security/identity checks, private 0700/0600 storage, partition-table
+   validation, immutable SHA-256 manifest and independent encrypted backup copy.
+   A compiled factory/OTA image is **not** a device backup. Current environment has
+   no exposed serial port; physical USB recovery is not proven by local tools.
+2. Physically disconnect every heater/smoke/relay/mains control connection and use
+   USB bench power only. This PoC has no project GPIO/sensor/output/control code,
+   HTTP server, ESPHome API or OTA. ROM and UART still affect pins, so no unknown
+   external wiring may remain. Preserve independent thermal protections.
+3. With separately provisioned development inputs, rerun offline tests, firmware build
+   and size checks. Privately review the exact `local/esp32-build/flash_args`, hashes
+   and offsets. Both app slots must fit `0x1c0000`, flash is 4 MB, no PSRAM. The app
+   slots match production but **NVS, PHY and OTA metadata offsets differ**: the
+   experiment's OTA metadata at `0x390000` overlaps production NVS. Never use production
+   OTA or assume flashing the app alone restores the original firmware state.
+4. Obtain explicit authorization for the exact experimental USB image set, outage
+   and full restoration. Follow the successful build's flash instructions only after
+   all recovery gates pass. No upload is performed by `build.py`. Keep the verified
+   backup unchanged and available even if Wi-Fi/API/OTA become unavailable.
+5. After authorized deployment, use a private serial terminal at 115200 baud; opening
+   it can reset this board. No boot send occurs. Wait for network/time readiness,
+   enter HEAP, lock the enrolled iPhone for five minutes and enter SEND **once**.
+   Record provider 201 separately from actual Lock Screen display, sound, tap,
+   Focus/silent settings and latency. Do not publish subscription data.
+6. Record before_crypto/after_crypto, before_tls/tls_connected/after_cleanup free heap,
+   largest block, separate crypto/HTTPS minimum windows and task stack watermark.
+   Printed microsecond times are wall time, not CPU utilization. No actual measurements
+   exist yet. Repeated sends/network-failure/reconnect tests require inclusion in the
+   owner's trial authorization; wait >=60 s between manual SENDs, never replay events.
+   For 429/5xx stop and review backoff; 401/403 requires key/clock review; 404/410
+   retires the recipient in RAM. Do not reboot to bypass retirement or disable TLS.
+7. Restore **the entire verified raw snapshot at address 0** with the canonical
+   procedure, explicit keep options, no automatic boot until full readback comparison
+   and SHA-256 checks pass. Do not substitute the latest compiled production app,
+   factory image or a new partition table. No erase-all, force, eFuse or live HA change.
+8. Deliberately return to original boot only after verification and authorization.
+   Confirm original Wi-Fi, existing encrypted HA/native API, standalone real updates
+   and OTA availability using the canonical checklist. OTA transfer remains a separate
+   authorization/test; a listening port is not proof of encrypted upload success.
+   Record actual results; production integration stays NO-GO even if this trial passes.
 
-```bash
-cd /home/mkopal/Projects/git/smart-smoker
-umask 077
-mkdir -p local/device/push-backup
-chmod 700 local/device/push-backup
-.venv/bin/python -m esptool --chip esp32 --port /dev/serial/by-id/usb-Silicon_Labs_CP2102_USB_to_UART_Bridge_Controller_0001-if00-port0 read-flash 0 0x400000 local/device/push-backup/known-good-4mb.bin
-sha256sum local/device/push-backup/known-good-4mb.bin > local/device/push-backup/SHA256SUMS
-```
-
-4. With real development inputs provisioned, repeat the build/tests above. Confirm
-   binary size fits both `0x1c0000` slots, flash is 4 MB, no PSRAM is enabled and no
-   project hardware-control call is present. Read `local/esp32-build/flash_args`
-   privately and verify **only** PoC artifacts/offsets. Record their hashes privately.
-   Reconfirm explicit authorization for these exact files before using the IDF
-   flash command printed by the successful build. On this workstation, after
-   authorization, the equivalent complete command is:
-
-```bash
-cd /home/mkopal/Projects/git/smart-smoker-push-test/local/esp32-build
-/home/mkopal/.cache/esphome/idf/penvs/5.5.5/bin/python -m esptool --chip esp32 --port /dev/serial/by-id/usb-Silicon_Labs_CP2102_USB_to_UART_Bridge_Controller_0001-if00-port0 --baud 115200 write_flash @flash_args
-```
-
-5. Use a private serial terminal at 115200 baud after the authorized flash. Terminal
-   opening can reset this board; record any reset. Wait for the command prompt and
-   network/time readiness. No notification is sent at boot. Enter `HEAP` and record
-   the sanitized baseline. Lock the installed enrolled iPhone, wait five minutes,
-   record Focus/silent/notification settings and phone network. Enter **`SEND` once**.
-6. Record provider result separately from actual locked-screen display and audible
-   sound. HTTP 201 alone is not phone delivery. Record local time/timezone, event
-   observation, latency and tap behavior without copying private subscription data.
-   Check `before_crypto`, `before_tls`, `tls_connected` and `after_cleanup`: free
-   8-bit heap, largest block, separate crypto/HTTPS minimum windows and main-task stack watermark.
-   Wall times printed are not CPU utilization measurements.
-7. Only within the authorized trial scope, wait at least 60 seconds and perform
-   repeated manual sends (target 20) to check heap recovery. No automatic replay,
-   retry or recurring notification exists. Every SEND creates a new dummy test ID.
-   For 429/5xx, stop and honor provider backoff; do not use the device to probe rate
-   limits. 404/410 retires the subscription in RAM until restart; re-enroll/rebuild
-   rather than restarting to bypass retirement. 401/403 requires clock/key review.
-8. In an authorized controlled **development** network, disconnect the AP before
-   SEND: refusal is expected. Test loss during a send: bounded failure and cleanup
-   are expected. Restore AP, enter `CONNECT` once, wait for time/connectivity and
-   send a fresh test. Never replay an old event. Record actual elapsed timeout,
-   heap recovery, watchdog/reset behavior and successful fresh delivery. Invalid
-   TLS certificates must fail; never bypass certificate checks to complete a test.
-9. Restore the exact full-flash backup with the authorized command below. Verify
-   backup hash first. A full image restores the partition table and NVS as well as
-   firmware, so confirm device identity again. No erase-all operation is needed.
-
-```bash
-cd /home/mkopal/Projects/git/smart-smoker
-sha256sum --check local/device/push-backup/SHA256SUMS
-.venv/bin/python -m esptool --chip esp32 --port /dev/serial/by-id/usb-Silicon_Labs_CP2102_USB_to_UART_Bridge_Controller_0001-if00-port0 write-flash 0 local/device/push-backup/known-good-4mb.bin
-```
-
-10. Verify known-good monitoring, encrypted API, OTA availability and standalone UI
-    on the restored firmware. Do not change live HA. Record image identity and the
-    outage/recovery results. Revoke development subscriptions using the PWA when
-    finished; remove secret-bearing local artifacts through normal owner management.
-    Production integration remains a different milestone even if this bench test passes.
+The full-flash dump also contains credential versions. This preparation recorded a
+session-exposed shared API/OTA credential in the canonical security notes; no value
+is repeated here. Rotation is separate owner-authorized work, and restoring an old
+dump after rotation can bring back the old key. No live rotation was performed.

@@ -1,5 +1,38 @@
 # Validation evidence
 
+## Single-device recovery preparation — 2026-10-16
+
+Documentation-only follow-up, baseline `d9c7ae3`, initially clean working branch;
+fetched origin matches after sandbox DNS retry. The abbreviated backup/restore
+examples in esp32/README.md are superseded by the main project's
+[canonical single-device procedure](https://github.com/mkopal/smart-smoker/blob/esp32-direct-web-push-poc/docs/ESP32_BACKUP_RESTORE.md).
+No publisher, provisioning/build tool, partition layout, deployment workflow or
+static PWA source changed. No experimental private inputs or physical flash were
+read; the production generated-source exposure is recorded below.
+
+Local partition decode confirms matching app slots but incompatible NVS/OTA/PHY
+layout: experiment OTA metadata overwrites the beginning of production NVS. Require
+same-device full-flash restoration, not an app/factory-image substitution. The new
+procedure specifies private duplicate dumps, security/capacity checks, table and
+SHA-256 validation, independent encrypted copy, explicit restore/boot authorization,
+full readback comparison before boot, and actual original Wi-Fi/API/OTA/web checks.
+
+Current USB port is not exposed to this execution environment; current physical
+capacity/eFuses and actual ROM recovery remain NOT VERIFIED. Hardware backup,
+reset/flash/OTA/readback, push send, live HA and restored operation are NOT RUN.
+Physical trial is NO-GO until prerequisites and explicit authorization; production
+integration remains NO-GO. The canonical notes record a session-exposed shared
+production API/OTA credential and separate rotation follow-up, without reproducing
+its value or changing live keys. No experiment credential was accessed.
+
+Checks: canonical Bash syntax/offline synthetic backup checker (9 cases) PASS;
+local documentation links/fences PASS. `python3 -m unittest discover -s tests -v`
+with Node 22.20.0 PASS (11 methods); `python3 scripts/audit_public.py` PASS (exact
+public Git inventory, staged/worktree secret heuristics and static artifact boundary);
+`git diff --check` / `git diff --cached --check` PASS. Main `task test` PASS (90 methods).
+No new firmware build is needed for this documentation-only update; earlier compile
+evidence is unchanged. No new remote CI or deployment result is claimed.
+
 ## ESP32 publisher continuation — 2026-10-16
 
 Status: **HARDWARE_VALIDATION_PENDING**, conditional GO for an explicitly authorized
