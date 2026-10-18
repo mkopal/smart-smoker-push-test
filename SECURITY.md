@@ -55,7 +55,12 @@ repository owner privately without including sensitive values in the first messa
 The optional `https_spike/` tool serves only a fixed synthetic API on an explicitly
 selected loopback/LAN address. Its public fixture token is not ownership proof.
 It never accepts real subscriptions/credentials or sends push. A separate ignored
-static artifact has exact-device CSP; the normal Pages build is unchanged. Keep TLS
+static artifact has exact-device CSP. The combined Pages builder includes only its
+ten static files under `dist/https-spike/`, preserving the original root PWA bytes.
+The device origin is exactly `https://smoker-test.navodio.cz:8443`; the permitted
+app origin remains `https://mkopal.github.io`. No CORS policy is changed by building.
+The exact 21-file inventory is `PAGES_FILES.txt`; artifact auditing recursively scans
+both app directories and rejects unknown entries and symlinks. Keep TLS
 material and ACME data in ignored `local/https-spike/`; no issuance, LAN listener,
 DNS/router/firewall changes or public hosting are authorized by building/testing.
 The [runbook](https_spike/README.md) documents limits, CA trust, physical acceptance,

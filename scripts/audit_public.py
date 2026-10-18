@@ -8,6 +8,7 @@ ROOT = Path(__file__).resolve().parents[1]
 PUBLIC_FILES = {
     '.gitignore', '.nvmrc', '.github/workflows/pages.yml', 'README.md', 'NOTICE.md',
     'SECURITY.md', 'VALIDATION.md', 'PUBLIC_FILES.txt', 'build.py', 'package.json',
+    'build_pages.py', 'PAGES_FILES.txt', 'tests/test_pages.py',
     'package-lock.json', 'publisher.cjs', 'library-test.js', 'tests.js',
     'scripts/catalogs.py', 'scripts/audit_public.py', 'scripts/browser-test.cjs',
     'tests/test_esp32.py', 'tests/test_https_spike.py', 'scripts/https-spike-test.cjs',
@@ -52,10 +53,10 @@ def audit(root=ROOT):
             raise ValueError('Sensitive-looking public content; values suppressed')
     if tracked != expected:
         raise ValueError('Stage the exact reviewed public inventory before auditing')
-    from build import validate_site
-    validate_site(root / 'dist')
-    for path in (root / 'dist').iterdir():
-        if path.suffix != '.png' and SENSITIVE.search(path.read_bytes()):
+    from build_pages import validate_pages
+    validate_pages(root / 'dist', root / 'PAGES_FILES.txt')
+    for path in (root / 'dist').rglob('*'):
+        if path.is_file() and path.suffix != '.png' and SENSITIVE.search(path.read_bytes()):
             raise ValueError('Sensitive-looking static artifact; values suppressed')
     print('PASS: exact public Git inventory, index/worktree secret heuristics and static artifact boundary')
 

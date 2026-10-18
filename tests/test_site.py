@@ -12,11 +12,14 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 import build
 from scripts.audit_public import audit
+import build_pages
 
 
 class SiteTests(unittest.TestCase):
     def test_build_exact_files_and_subpath_links(self):
-        output = build.build()
+        directory = tempfile.TemporaryDirectory()
+        self.addCleanup(directory.cleanup)
+        output = build.build(output=Path(directory.name))
         self.assertEqual({p.name for p in output.iterdir()}, build.SITE_FILES)
         for size in (180, 192, 512):
             image = (output / f'icon-{size}.png').read_bytes()
@@ -82,12 +85,18 @@ class SiteTests(unittest.TestCase):
                 target = root / name
                 target.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copyfile(ROOT / name, target)
-            shutil.copytree(ROOT / 'dist', root / 'dist')
+            build_pages.build(root / 'dist')
             def git(*args):
                 return subprocess.run(['git', *args], cwd=root, check=True, capture_output=True)
             git('init', '-q')
             git('add', '.')
             audit(root)
+            artifact = root / 'dist/https-spike/app.js'
+            original_artifact = artifact.read_bytes()
+            artifact.write_text('"privateKey": "' + 'X' * 43 + '"')
+            with self.assertRaises(ValueError):
+                audit(root)
+            artifact.write_bytes(original_artifact)
             private = root / 'phone.json'
             private.write_text('synthetic-private-marker')
             git('add', 'phone.json')

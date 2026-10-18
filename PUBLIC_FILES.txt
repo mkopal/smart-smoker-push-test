@@ -2,11 +2,13 @@
 .gitignore
 .nvmrc
 NOTICE.md
+PAGES_FILES.txt
 PUBLIC_FILES.txt
 README.md
 SECURITY.md
 VALIDATION.md
 build.py
+build_pages.py
 esp32/CMakeLists.txt
 esp32/FEASIBILITY.md
 esp32/README.md
@@ -46,6 +48,7 @@ scripts/https-spike-test.cjs
 tests.js
 tests/test_esp32.py
 tests/test_https_spike.py
+tests/test_pages.py
 tests/test_site.py
 web/app.js
 web/i18n.js

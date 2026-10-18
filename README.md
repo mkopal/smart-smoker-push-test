@@ -63,7 +63,7 @@ npm ci --ignore-scripts --no-audit --no-fund
 npm test
 npm run test:library
 python3 -m unittest discover -s tests -v
-python3 build.py
+python3 build_pages.py
 python3 scripts/audit_public.py
 ```
 
@@ -212,11 +212,17 @@ subscriptions. VAPID rotation needs a new subscription restricted to the new key
 
 ## Static hosting and installation limits
 
-`python3 build.py` packages only `dist/`. The workflow tests first, audits the exact
+`python3 build_pages.py` builds the original Web Push PWA at `dist/` and the
+independent HTTPS spike at `dist/https-spike/`, using the two existing builders.
+`python3 build.py` remains the root-only builder for a clean output directory.
+The workflow tests first, audits the exact
 public file inventory and uploads **only `dist/`**; the deploy job has Pages/OIDC
 permissions, not publisher credentials. GitHub Pages is not a Node/Python application
 server. The public repository includes CLI source for local use, but no CLI endpoint
-is hosted. See [GitHub's workflow requirements](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages).
+is hosted. The exact 21-file artifact inventory is [PAGES_FILES.txt](PAGES_FILES.txt).
+PRs run all build/test/audit checks; Pages configuration, upload and deployment
+require a non-PR event on `refs/heads/main`. Experimental branches cannot deploy.
+See [GitHub's workflow requirements](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages).
 
 Relative assets, worker registration, manifest ID/start_url/scope and notification
 click target support `/smart-smoker-push-test/`. The worker's scope is that project
@@ -245,7 +251,12 @@ publisher or deployed Pages artifact. No device operation or live send was perfo
 
 The [Linux HTTPS emulator and iPhone runbook](https_spike/README.md) add a synthetic,
 versioned enrollment transport probe and a separately built EN/CS PWA interface.
-The existing Pages artifact, push enrollment UI and production firmware stay unchanged.
+The combined Pages artifact preserves the original root PWA bytes and adds only
+`https-spike/`. The spike URL is
+`https://mkopal.github.io/smart-smoker-push-test/https-spike/`, with fixed device
+origin `https://smoker-test.navodio.cz:8443` and permitted app origin
+`https://mkopal.github.io` (no path). The push enrollment UI and production firmware
+stay unchanged. Building locally does not publish either app.
 Run `npm run test:spike` for deterministic and loopback tests; the full host suite
 also includes these tests. Public hosting, trusted certificates, DNS and physical
 phone validation require the separately authorized owner-run Phase B/C procedure.

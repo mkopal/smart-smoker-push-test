@@ -20,9 +20,28 @@ production architecture, a rendezvous service or an enrollment security protocol
 package, custom cryptography, HTTP fallback, forwarding, static-file service,
 subscription handling, disk state or request logging. Use Python 3.10+ and Node
 22+ for tests/build checks; OpenSSL CLI is needed only for temporary test fixtures.
-The ordinary `web/`, build, CSP, worker, `dist/` and Pages workflow stay unchanged.
+The ordinary `web/` implementation, root CSP, manifest and worker stay unchanged.
+The Pages workflow uses `build_pages.py` to stage both independent PWAs in one
+artifact; the root-only builder remains available for a clean output directory.
 
 The separate builder emits exactly ten files into ignored `local/https-spike/site`.
+For Pages, `python3 build_pages.py` invokes that same isolated builder in a
+temporary directory and stages only its ten approved files under `dist/https-spike/`.
+The root retains its original eleven files. [PAGES_FILES.txt](../PAGES_FILES.txt)
+lists all 21 deployed paths; the audit rejects extras, missing files and symlinks.
+Repeated combined builds produce the same bytes at the same source revision.
+
+Target app URL: `https://mkopal.github.io/smart-smoker-push-test/https-spike/`.
+The Pages builder fixes device origin B to `https://smoker-test.navodio.cz:8443`;
+the emulator must continue permitting exactly app origin A `https://mkopal.github.io`.
+It does not configure or restart the emulator. Root worker scope remains
+`/smart-smoker-push-test/`; the spike registers its own worker with scope
+`/smart-smoker-push-test/https-spike/`. The root worker has no fetch handler;
+the more specific spike registration is independent. Both manifest IDs/start URLs/
+scopes remain relative `./`. This is path separation, not a new browser origin.
+No certificates, keys, Cloudflare credentials, device secrets or local state are read
+by the Pages build. All remain outside Git and the artifact.
+
 Its discovered EN/CS catalogs reuse the approved Intl adapter and catalog validator.
 Its manifest/worker scope and start URL are `./`; host it in its own approved path
 or dedicated public origin, never replace the currently deployed push experiment.
@@ -87,7 +106,7 @@ openssl version
 npm test
 npm run test:library
 python3 -m unittest discover -s tests -v
-python3 build.py
+python3 build_pages.py
 python3 scripts/audit_public.py
 git diff --check
 ```
@@ -179,7 +198,9 @@ Prepare the artifact locally (does not start a listener or publish it), then han
 the exact ten generated files to the separately authorized static-host operator.
 The operator must serve JS/manifest with correct MIME types under one unchanged
 path, without rewriting API requests or broadening the generated CSP. Hosting
-provider selection/upload remains pending, so no deployment command is assumed.
+is supported through the combined Pages artifact above; publication still requires
+explicit approval. PRs validate without uploading or deploying; configuration,
+upload and deployment are gated to non-PR events on `refs/heads/main`.
 
 ```bash
 read -r -p 'Approved device FQDN: ' SPIKE_FQDN
