@@ -62,8 +62,8 @@ def validate_site(output):
         raise ValueError('Home Screen standalone display required')
 
 
-def build(root=ROOT):
-    source, output = root / 'web', root / 'dist'
+def build(root=ROOT, output=None):
+    source, output = root / 'web', output if output is not None else root / 'dist'
     if output.is_symlink():
         raise ValueError('Redirected output')
     output.mkdir(exist_ok=True)

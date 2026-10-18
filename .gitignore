@@ -10,3 +10,9 @@ __pycache__/
 *.log
 *subscription*.json
 *vapid*.json
+esp32/sdkconfig
+esp32/sdkconfig.old
+esp32/build/
+*.bin
+*.elf
+poc_config.h

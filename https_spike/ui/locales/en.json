@@ -1,0 +1,18 @@
+{
+  "app": {
+    "title": "Smart Smoker HTTPS transport spike",
+    "instructions": "Synthetic data only. This probe does not establish ownership or enable notifications. Run only against the approved LAN emulator.",
+    "language": "Language",
+    "endpoint": "Fixed test endpoint:",
+    "standalone": "Home Screen mode detected. Record the actual iPhone and iOS version separately.",
+    "tab": "Browser tab detected. This is not Home Screen acceptance evidence.",
+    "run": "Run synthetic HTTPS checks"
+  },
+  "status": {
+    "ready": "Ready. No request has been sent.",
+    "running": "Checking authorization, malformed input, success and replay…",
+    "passed": "Checks passed in this session. Record device, browser, network and certificate evidence before accepting the gate.",
+    "failed": "Checks failed or were interrupted. Verify trusted TLS, DNS, CORS, permissions and network. Retry manually; no insecure fallback.",
+    "unavailable": "Secure context or PWA worker unavailable. Do not bypass TLS warnings."
+  }
+}

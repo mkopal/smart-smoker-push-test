@@ -8,8 +8,20 @@ ROOT = Path(__file__).resolve().parents[1]
 PUBLIC_FILES = {
     '.gitignore', '.nvmrc', '.github/workflows/pages.yml', 'README.md', 'NOTICE.md',
     'SECURITY.md', 'VALIDATION.md', 'PUBLIC_FILES.txt', 'build.py', 'package.json',
+    'build_pages.py', 'PAGES_FILES.txt', 'tests/test_pages.py',
     'package-lock.json', 'publisher.cjs', 'library-test.js', 'tests.js',
     'scripts/catalogs.py', 'scripts/audit_public.py', 'scripts/browser-test.cjs',
+    'tests/test_esp32.py', 'tests/test_https_spike.py', 'scripts/https-spike-test.cjs',
+    'https_spike/server.py', 'https_spike/build.py', 'https_spike/README.md',
+    'https_spike/ui/index.html', 'https_spike/ui/app.js', 'https_spike/ui/style.css',
+    'https_spike/ui/manifest.webmanifest', 'https_spike/ui/sw.js',
+    'esp32/CMakeLists.txt', 'esp32/README.md', 'esp32/FEASIBILITY.md',
+    'esp32/build.py', 'esp32/provision.cjs', 'esp32/sdkconfig.defaults',
+    'esp32/partitions.csv', 'esp32/main/CMakeLists.txt',
+    'esp32/main/main.cpp', 'esp32/main/push_crypto.cpp', 'esp32/main/push_crypto.h',
+    'esp32/main/policy.cpp', 'esp32/main/policy.h',
+    'esp32/tests/CMakeLists.txt', 'esp32/tests/driver.cpp', 'esp32/tests/test.cjs',
+    'esp32/tests/serial.cpp', 'esp32/tests/stubs/sdk.h',
     'tests/test_site.py', 'web/app.js', 'web/i18n.js', 'web/index.html',
     'web/manifest.webmanifest', 'web/style.css', 'web/sw.js',
 }
@@ -20,6 +32,7 @@ SENSITIVE = re.compile(rb'-----BEGIN [A-Z ]*PRIVATE KEY-----|gh[pousr]_[A-Za-z0-
 
 def audit(root=ROOT):
     expected = PUBLIC_FILES | {p.relative_to(root).as_posix() for p in (root / 'web/locales').glob('*.json')}
+    expected |= {p.relative_to(root).as_posix() for p in (root / 'https_spike/ui/locales').glob('*.json')}
     manifest = (root / 'PUBLIC_FILES.txt').read_text().splitlines()
     if manifest != sorted(expected):
         raise ValueError('Public file inventory mismatch')
@@ -40,10 +53,10 @@ def audit(root=ROOT):
             raise ValueError('Sensitive-looking public content; values suppressed')
     if tracked != expected:
         raise ValueError('Stage the exact reviewed public inventory before auditing')
-    from build import validate_site
-    validate_site(root / 'dist')
-    for path in (root / 'dist').iterdir():
-        if path.suffix != '.png' and SENSITIVE.search(path.read_bytes()):
+    from build_pages import validate_pages
+    validate_pages(root / 'dist', root / 'PAGES_FILES.txt')
+    for path in (root / 'dist').rglob('*'):
+        if path.is_file() and path.suffix != '.png' and SENSITIVE.search(path.read_bytes()):
             raise ValueError('Sensitive-looking static artifact; values suppressed')
     print('PASS: exact public Git inventory, index/worktree secret heuristics and static artifact boundary')
 

@@ -1,8 +1,11 @@
 # Smart Smoker Web Push Test
 
 Temporary public research prototype for real system notifications on locked iPhone
-and Android devices. **PAUSED after owner-reported iPhone Lock Screen and sound PASS
-on 2026-10-15; Android and ESP32 remain unverified.** See [evidence and continuation](VALIDATION.md#physical-phone-results).
+and Android devices. **Isolated ESP32-to-locked-iPhone PoC SUCCESS (2026-10-16):**
+provider HTTP 201 was instrumented; delivery and sound were separately owner-confirmed.
+Production integration remains **NO-GO**; Android and extended reliability remain
+unverified. See [authoritative ESP32 results and roadmap](esp32/FEASIBILITY.md) and
+[evidence and continuation](VALIDATION.md).
 
 - Site: https://mkopal.github.io/smart-smoker-push-test/
 - Repository: https://github.com/mkopal/smart-smoker-push-test
@@ -33,14 +36,16 @@ paid notification service or an application backend, at deployed commit
 `b640bfc9e0caf873faeca36646533f138a3c91ee`. Focus/Sleep initially restricted presentation;
 sound was heard with silencing disabled and an initial JSON format issue was corrected
 manually. This is not proof of a Focus bypass, repeated-alert reliability or a critical
-alarm. Existing Pages stays enabled while development is paused.
+alarm. Existing Pages stays enabled at the previous deployment.
 
 The PWA does not need to stay open to receive push as a platform capability; separate
 background/closed-app cases were not supplied in this test report. See the
 [WebKit platform announcement](https://webkit.org/blog/13966/webkit-features-in-safari-16-4/)
 and [Google's overview](https://web.dev/articles/push-notifications-overview).
-The laptop is the publisher here; ESP32 implementation remains a separate unverified
-milestone. This experiment never contacts or configures a smoker.
+The laptop published the 2026-10-15 owner-observed notification. The isolated
+[ESP-IDF publisher](esp32/README.md) subsequently delivered one notification with
+sound to the locked iPhone on 2026-10-16. The enrollment PWA has no direct connection
+to the smoker; the isolated publisher uses its privately provisioned subscription.
 
 ## Local setup and checks
 
@@ -58,7 +63,7 @@ npm ci --ignore-scripts --no-audit --no-fund
 npm test
 npm run test:library
 python3 -m unittest discover -s tests -v
-python3 build.py
+python3 build_pages.py
 python3 scripts/audit_public.py
 ```
 
@@ -207,11 +212,17 @@ subscriptions. VAPID rotation needs a new subscription restricted to the new key
 
 ## Static hosting and installation limits
 
-`python3 build.py` packages only `dist/`. The workflow tests first, audits the exact
+`python3 build_pages.py` builds the original Web Push PWA at `dist/` and the
+independent HTTPS spike at `dist/https-spike/`, using the two existing builders.
+`python3 build.py` remains the root-only builder for a clean output directory.
+The workflow tests first, audits the exact
 public file inventory and uploads **only `dist/`**; the deploy job has Pages/OIDC
 permissions, not publisher credentials. GitHub Pages is not a Node/Python application
 server. The public repository includes CLI source for local use, but no CLI endpoint
-is hosted. See [GitHub's workflow requirements](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages).
+is hosted. The exact 21-file artifact inventory is [PAGES_FILES.txt](PAGES_FILES.txt).
+PRs run all build/test/audit checks; Pages configuration, upload and deployment
+require a non-PR event on `refs/heads/main`. Experimental branches cannot deploy.
+See [GitHub's workflow requirements](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages).
 
 Relative assets, worker registration, manifest ID/start_url/scope and notification
 click target support `/smart-smoker-push-test/`. The worker's scope is that project
@@ -227,3 +238,26 @@ sound and inactive-site policies vary. Network/OS/provider failures can prevent 
 
 Read [SECURITY.md](SECURITY.md), the exact [public file list](PUBLIC_FILES.txt),
 [licensing/provenance notes](NOTICE.md) and [validation evidence](VALIDATION.md).
+
+## Isolated ESP32 publisher
+
+The [ESP32 bench project](esp32/README.md) implements direct outbound publishing
+with ESP-IDF 5.5.5 and its mbedTLS primitives. See its [resource report and gates](esp32/FEASIBILITY.md).
+Status: HARDWARE_VALIDATION_PENDING; conditional GO for a separately authorized
+bench trial, NO-GO for production. This does not change the enrollment PWA, Linux
+publisher or deployed Pages artifact. No device operation or live send was performed.
+
+## P0 isolated local HTTPS transport spike
+
+The [Linux HTTPS emulator and iPhone runbook](https_spike/README.md) add a synthetic,
+versioned enrollment transport probe and a separately built EN/CS PWA interface.
+The combined Pages artifact preserves the original root PWA bytes and adds only
+`https-spike/`. The spike URL is
+`https://mkopal.github.io/smart-smoker-push-test/https-spike/`, with fixed device
+origin `https://smoker-test.navodio.cz:8443` and permitted app origin
+`https://mkopal.github.io` (no path). The push enrollment UI and production firmware
+stay unchanged. Building locally does not publish either app.
+Run `npm run test:spike` for deterministic and loopback tests; the full host suite
+also includes these tests. Public hosting, trusted certificates, DNS and physical
+phone validation require the separately authorized owner-run Phase B/C procedure.
+**HARDWARE_VALIDATION_PENDING; NO-GO for real-device HTTPS integration and P0 closure.**

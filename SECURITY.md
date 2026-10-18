@@ -1,7 +1,11 @@
 # Experimental security boundary
 
 The GitHub Pages site is static. It has no registration upload API, database, backend
-handler or connection to an ESP32. Only the owner-run local CLI sends notifications.
+handler or connection to an ESP32. The owner-run Linux CLI sends notifications;
+the isolated [ESP32 bench publisher](esp32/README.md) can do so only after separately
+authorized private provisioning and hardware deployment. It has no configuration
+HTTP server. Its private firmware images embed development keys/subscriptions/Wi-Fi
+credentials; do not distribute them. Production secure pairing/storage is unresolved.
 Never put a VAPID private key in the browser, a URL, Git, GitHub Secrets, Actions logs,
 an issue or a screenshot. Only the public VAPID key is entered in the page.
 
@@ -45,3 +49,19 @@ detect its own host's outage or guarantee message delivery.
 
 Do not report vulnerabilities with keys/subscriptions in public issues. Contact the
 repository owner privately without including sensitive values in the first message.
+
+## Isolated HTTPS transport emulator
+
+The optional `https_spike/` tool serves only a fixed synthetic API on an explicitly
+selected loopback/LAN address. Its public fixture token is not ownership proof.
+It never accepts real subscriptions/credentials or sends push. A separate ignored
+static artifact has exact-device CSP. The combined Pages builder includes only its
+ten static files under `dist/https-spike/`, preserving the original root PWA bytes.
+The device origin is exactly `https://smoker-test.navodio.cz:8443`; the permitted
+app origin remains `https://mkopal.github.io`. No CORS policy is changed by building.
+The exact 21-file inventory is `PAGES_FILES.txt`; artifact auditing recursively scans
+both app directories and rejects unknown entries and symlinks. Keep TLS
+material and ACME data in ignored `local/https-spike/`; no issuance, LAN listener,
+DNS/router/firewall changes or public hosting are authorized by building/testing.
+The [runbook](https_spike/README.md) documents limits, CA trust, physical acceptance,
+cleanup and why host PASS cannot close P0 or authorize ESPHome integration.

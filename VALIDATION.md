@@ -1,5 +1,160 @@
 # Validation evidence
 
+## Successful isolated ESP32 PoC and full restoration — 2026-10-16
+
+Documentation finalization on `esp32-direct-web-push-poc`; clean initial baselines:
+main `880a80a`, experiment `3a87c84`. Both origins fetched successfully after retry
+outside sandbox DNS restrictions, with no remote divergence. Evidence comes from
+the owner's supplied sanitized firmware/build/restore results and explicit phone/UI
+observations, not new hardware execution or private-artifact inspection by this task.
+Earlier preparation/software-only NOT RUN entries below retain their original scope.
+
+| Verification | Actual result / evidence boundary |
+|---|---|
+| Wi-Fi / IPv4 / SNTP and publish readiness | PASS after manual CONNECT; initial reason 203 association failure blocked publishing; root cause unknown; no automatic reconnect tested |
+| Real ESP32 Web Push encryption / VAPID / HTTPS | PASS for one send using diagnostic implementation `3a87c84`, IDF 5.5.5, HW-395 / ESP-WROOM-32D, ESP32-D0WD-V3 revision 3.1, 4 MB, no PSRAM |
+| Provider acceptance | **PASS: HTTP 201**, instrumented firmware result |
+| Locked iPhone delivery | **PASS: explicitly owner-confirmed**, independently of provider acceptance |
+| Audible iPhone notification | **PASS: explicitly owner-confirmed**, no general iOS sound guarantee |
+| Isolated heap/stack/wall time and real-input build | Recorded in the [authoritative measurement report](esp32/FEASIBILITY.md); wall time is not CPU utilization and static memory is not runtime heap |
+| Production full raw flash restore | **Verified PASS**, esptool 5.3.1 full 4 MB write/verify/readback/cmp/SHA-256; [canonical backup/restoration record](https://github.com/mkopal/smart-smoker/blob/esp32-direct-web-push-poc/docs/ESP32_BACKUP_RESTORE.md) |
+| Original HTTP UI returned | **Verified PASS (owner-confirmed)** |
+| HA native API reconnect / entity updates / OTA availability / authenticated OTA transfer | **NOT VERIFIED** in this test record |
+| Extended reliability / automatic recovery / Android / multiple phones / secure production pairing-storage / integrated ESPHome resources | **NOT VERIFIED**; production integration remains **NO-GO** |
+| New device, serial, flash, reset, OTA, push or live infrastructure operation in this documentation task | **NOT RUN: prohibited**; board was USB-only without control hardware during the reported experiment |
+
+The isolated PoC is successful. It does not complete production integration or
+provide delivery/safety guarantees. Next engineering work is bounded Wi-Fi reconnect
+and SNTP readiness, followed by the report's prioritized roadmap. Production source,
+build configuration, partitions, private credentials and firmware artifacts remain
+unchanged. Existing EN/CS UI behavior is preserved.
+
+Checks used the existing Node 22.20.0 via
+`export PATH="$HOME/.nvm/versions/node/v22.20.0/bin:$PATH"`; no dependency installation.
+
+| Experiment check | Actual result |
+|---|---|
+| `npm test` | PASS: publisher, enrollment, localization and worker behavior offline |
+| `npm run test:library` | PASS: real encryption/decryption, wrong-auth rejection, ES256 signature and private CLI lifecycle offline; sandbox initially blocked Node subprocess with EPERM, approved rerun outside sandbox passed; no push sent |
+| `python3 -m unittest discover -s tests -v` | PASS: all 11 methods, including private provisioning and public artifact guards |
+| `python3 build.py` | PASS: exactly 11 approved static public artifact files; local build only, no deployment |
+| `python3 scripts/audit_public.py` | PASS: exact public Git inventory, index/worktree secret heuristics and static artifact boundary |
+
+| Documentation check | Actual result |
+|---|---|
+| `python3 /tmp/check-push-docs.py` (temporary host-only review helper) | PASS: 10 Markdown-only changed files, 72 local/cross-repository links including anchors, balanced fences, 25 Bash blocks syntax checked without executing their commands |
+| `git diff --check` and `git diff --cached --check` | PASS: no whitespace errors; final worktree/staged documentation-only scope reviewed |
+| Security / artifact review | PASS: repository index/worktree heuristics and changed content reviewed; no private credentials, network address, backup paths, generated firmware or runtime configuration staged. Heuristics are not an exhaustive secret audit |
+| Firmware compile / device tests | N/A for this documentation-only change; no new firmware build, device operation, remote CI or deployment result claimed |
+
+
+## Safe ESP32 serial diagnostics — 2026-10-16
+
+Baseline `725231b`, clean `esp32-direct-web-push-poc`; origin fetched before edits
+(after sandbox DNS retry). No main-repository or production configuration changes.
+Owner reports physical PoC flash/boot and HEAP around 218 KB, with generic SEND
+refusal and silent CONNECT. This is owner-reported prior-image evidence with
+unrecorded exact image/phase/units; no physical validation is repeated by this task.
+
+Added read-only STATUS and distinct publish blockers, station/IP-loss tracking,
+SNTP sync observation, numeric single-connect results and fixed startup-operation
+errors. SDK logs remain suppressed. No automatic reconnect/send or new network
+configuration is introduced; synthetic builds keep network disabled but expose the
+console. Clock plausibility and observed synchronization are deliberately separate.
+
+| Executed check | Actual result |
+|---|---|
+| Public-only isolated source snapshot / synthetic provisioning | PASS: under local/diagnostics-validation; no original input regeneration, private build overwrite or private credential output |
+| `python3 local/diagnostics-validation/esp32/build.py host` with Node 22.20.0 | PASS: RFC 8291 vector, independent decryption/ES256 checks and existing negative/boundary cases; actual serial dispatcher and event adapter against host-only SDK stand-ins; every blocker/expiry/time boundary, tiny-buffer rejection, read-only repeated STATUS, single CONNECT success/failure, no reconnect/send on events, zero/missing IP, IP loss/disconnection/stop, synthetic mode and NVS-startup failure; public secret canaries absent from output |
+| `npm test` | PASS: existing publisher/enrollment/localization/worker offline suite |
+| `npm run test:library` | PASS: existing real web-push crypto and private CLI lifecycle tests; approved offline execution outside sandbox for known Node subprocess restriction; no notification sent |
+| `python3 -m unittest discover -s tests -v` with Node 22.20.0 | PASS: 11 Python tests including public artifact/private provisioning guards |
+| Isolated `python3 esp32/build.py firmware` and `size` | PASS: exact IDF 5.5.5 Xtensa build, .bin 907,904 B, linker total 907,781 B, static DRAM 35,196 B, IRAM 97,271 B; both 1,835,008 B slots fit, headroom 927,104 B / 50.52% |
+| Protected-file fingerprints before/after checks | PASS: original experiment local/private, local/esp32-input, local/esp32-build and main local/device file membership/content/size/permissions unchanged; values suppressed |
+| `python3 scripts/audit_public.py`, final diff/whitespace review | PASS: exact public Git inventory and staged/worktree secret heuristics; static artifact boundary, Markdown links/fences/Bash syntax; final reviewed source/config matches the isolated cross-build |
+| Physical serial/Wi-Fi/SNTP, flash/reset/OTA, live config, actual push | NOT RUN: explicitly prohibited. Host stand-ins do not establish runtime networking, actual refusal cause or delivery |
+
+New generated inputs/builds use synthetic disabled sending. The existing private
+configuration, backups and previous device images remain untouched. No production
+readiness, hardware acceptance, key rotation or new deployment is claimed. Prior
+security/recovery follow-ups below remain applicable; future device work requires
+separate explicit authorization. Production integration remains NO-GO.
+
+## Single-device recovery preparation — 2026-10-16
+
+Documentation-only follow-up, baseline `d9c7ae3`, initially clean working branch;
+fetched origin matches after sandbox DNS retry. The abbreviated backup/restore
+examples in esp32/README.md are superseded by the main project's
+[canonical single-device procedure](https://github.com/mkopal/smart-smoker/blob/esp32-direct-web-push-poc/docs/ESP32_BACKUP_RESTORE.md).
+No publisher, provisioning/build tool, partition layout, deployment workflow or
+static PWA source changed. No experimental private inputs or physical flash were
+read; the production generated-source exposure is recorded below.
+
+Local partition decode confirms matching app slots but incompatible NVS/OTA/PHY
+layout: experiment OTA metadata overwrites the beginning of production NVS. Require
+same-device full-flash restoration, not an app/factory-image substitution. The new
+procedure specifies private duplicate dumps, security/capacity checks, table and
+SHA-256 validation, independent encrypted copy, explicit restore/boot authorization,
+full readback comparison before boot, and actual original Wi-Fi/API/OTA/web checks.
+
+Current USB port is not exposed to this execution environment; current physical
+capacity/eFuses and actual ROM recovery remain NOT VERIFIED. Hardware backup,
+reset/flash/OTA/readback, push send, live HA and restored operation are NOT RUN.
+Physical trial is NO-GO until prerequisites and explicit authorization; production
+integration remains NO-GO. The canonical notes record a session-exposed shared
+production API/OTA credential and separate rotation follow-up, without reproducing
+its value or changing live keys. No experiment credential was accessed.
+
+Checks: canonical Bash syntax/offline synthetic backup checker (9 cases) PASS;
+local documentation links/fences PASS. `python3 -m unittest discover -s tests -v`
+with Node 22.20.0 PASS (11 methods); `python3 scripts/audit_public.py` PASS (exact
+public Git inventory, staged/worktree secret heuristics and static artifact boundary);
+`git diff --check` / `git diff --cached --check` PASS. Main `task test` PASS (90 methods).
+No new firmware build is needed for this documentation-only update; earlier compile
+evidence is unchanged. No new remote CI or deployment result is claimed.
+
+## ESP32 publisher continuation — 2026-10-16
+
+Status: **HARDWARE_VALIDATION_PENDING**, conditional GO for an explicitly authorized
+isolated bench test; NO-GO for production integration. Initial experiment checkout
+`d8ac39d` was clean; fetched origin matched. Production repository baseline `579cc59`
+was clean. Sources and exact future device procedure: [ESP32 README](esp32/README.md).
+Measured build resources, limitations and gates: [report](esp32/FEASIBILITY.md).
+Only synthetic development keys/subscription were used; no real private inputs were read.
+
+| Executed command/check | Actual result |
+|---|---|
+| `node esp32/provision.cjs --synthetic` | PASS: owner-only ignored header, sending/network disabled; overwrite refusal tested |
+| `python3 esp32/build.py host` with Node 22.20.0 | PASS: bundled mbedTLS host build, RFC 8291 section 5 exact vector, independently decrypted Node fixtures and ES256 signature verification, fresh sender key/salt, tamper/wrong-auth/off-curve/mismatched/zero key rejection, payload bounds, time/expiration/status/response-budget and RNG failure gates, provisioning rejection cases |
+| `python3 esp32/build.py firmware` | PASS: actual ESP32 Xtensa build on IDF 5.5.5, no upload; full publisher linked despite disabled synthetic send flag |
+| `python3 esp32/build.py size`, application binary stat, generated partition decode | PASS: .bin 904,672 B; linker total 904,549 B; DRAM 35,180 B; IRAM 97,271 B; both slots 1,835,008 B, headroom 930,336 B / 50.7% |
+| Generated sdkconfig/compiler flags and ELF symbol inspection | PASS: 4 MB/no PSRAM, certificate validation enabled, HKDF/GCM/P-256 available, maximum SDK log level 0, parser cap 4096, retained crypto/HTTP symbols |
+| `npm test` | PASS: existing offline publisher/enrollment/worker/localization suite |
+| `npm run test:library` | PASS after an approved sandbox retry; initial Node child spawn hit EPERM. Actual web-push crypto/CLI lifecycle tests stayed offline |
+| `python3 -m unittest discover -s tests -v` | PASS: 11 Python unittest methods, including private provisioning, overwrite refusal, artifact ignore rules and public audit regressions |
+| `python3 build.py`, `python3 scripts/audit_public.py`, `git diff --check` | PASS: 11-file static artifact, exact staged/worktree public inventory, secret heuristics and final whitespace check |
+| Main repository `task test` with pinned task/Node in PATH | PASS: 90 unittest methods and repository/dashboard/web/experiment gates; system `/usr/bin/task` is a different utility and was replaced in PATH with the existing pinned go-task |
+| Production ESPHome validation/build | N/A: no production configuration/component/assets changes; preserved existing artifacts |
+| Hardware, serial, USB readback/flash, OTA, live HA, real subscription send | NOT RUN: explicitly prohibited |
+| Actual heap/minimum/largest block/recovery, CPU/network timing, ESP32-to-locked-iPhone delivery/sound | NOT RUN: software and linker results cannot establish these |
+
+Initial build attempts corrected an absolute build-directory path and the IDF version
+check to use IDF's exported version, and set the cached ROM ELF directory. A first
+synthetic build optimized out the disabled publisher; the volatile gate fixes that,
+and final resource evidence above is for the full linked publisher. Initial Python
+inventory failure occurred before adding the new explicit public source inventory;
+final rerun passed without relaxing the audit. No tests were weakened.
+
+The working branch avoids triggering the existing Pages deployment on main; static
+site sources and deployment workflow remain unchanged. No remote CI or physical
+acceptance is claimed. The pre-existing owner-reported iPhone result below remains
+Linux-publisher evidence only. Boot/output/probe safety testing is N/A to this isolated
+implementation, which has no actuator or sensor; production acceptance gates remain.
+
+---
+
+## Original experiment — 2026-10-15
+
 Date: 2026-10-15. Independent repository extracted from the isolated experiment only.
 Source Smart Smoker repository, production configuration, HA and Git history are
 preserved. No real subscription or signing key is published or needed for automated
@@ -117,3 +272,56 @@ existing Pages application enabled. Delivery checks for this documentation-only 
 - NOT RUN: new application tests, browser/phone sends or deployment; runtime code,
   workflow and deployed PWA remain unchanged. Main Smart Smoker's separate mandatory
   `task test` gate passed all 90 methods; it is not a new physical phone test.
+
+## P0 local HTTPS emulator — 2026-10-18
+
+**HARDWARE_VALIDATION_PENDING. NO-GO for advancing to real-device HTTPS integration;
+P0 and production integration remain NO-GO.** The owner has not run or confirmed
+any physical iPhone row. This implementation provides transport instrumentation
+and an owner-run procedure, not a validated enrollment security architecture.
+
+Baseline: clean `esp32-direct-web-push-poc` at `0410edc`, matching the locally
+available remote-tracking head; no fetch/push/deployment was performed. Main
+architecture reviewed at `745bd00`: ADR-008, active P0 enrollment design, PLAN,
+VALIDATION, project skill, localization and security constraints. Main repository
+and all ESP32/ESPHome/HA/OTA files remain unchanged.
+
+Implemented: isolated Python standard-library HTTPS API with exact Host/Origin
+allowlists, strict CORS, bounded bodies/headers/state/requests/timeouts, fixed
+synthetic schema and one-use monotonic challenges; independent EN/CS PWA artifact
+with fixed-endpoint CSP and no Push API, arbitrary data input or persistence other
+than language. Public inventory audit covers new source/catalogs. Normal `dist`
+remains the same eleven-file production-facing artifact. The spike's ten files
+are built separately under ignored `local/https-spike/site` and were not published.
+
+| Command / check | Actual result |
+|---|---|
+| `npm test` | PASS: existing offline publisher/enrollment/localization/worker regressions |
+| `npm run test:library` | PASS after sandbox retry: existing offline real web-push encryption/authentication/signature and private CLI tests; no outbound send |
+| `python3 -m unittest discover -s tests -v` | PASS: 25 methods, including 14 new spike methods and deterministic browser behavior invoked by unittest |
+| New actual loopback TLS tests | PASS: valid synthetic request, allowed preflight, no-token/wrong-token authorization, replay, expired/unknown session and restart semantics, malformed/duplicate/extra data, rejected real-data-shaped fields, wrong media type, invalid/missing/foreign Origin, invalid Host, duplicate framing, body/header/session/rate bounds, incomplete-body timeout without mutation and subsequent recovery |
+| New TLS negatives | PASS on Linux: isolated untrusted cert, wrong SAN hostname and expired temporary fixture fail certificate verification. These temporary self-signed fixtures are not public-CA/iPhone evidence |
+| `node scripts/https-spike-test.cjs` | PASS: mocked browser authorized/unauthorized/malformed/replay sequence, EN/CS selection/persistence, omitted credentials/no-store/redirect rejection, double-tap exclusion, failure at each request and insecure-context refusal. This is not real Safari execution |
+| `python3 build.py` | PASS: existing eleven-file Pages artifact; its CSP, app and worker unchanged |
+| `python3 https_spike/build.py --device-origin https://device.example.test:8443` | PASS: ten-file isolated artifact, exact endpoint CSP, discovered EN/CS and JS syntax. Reserved hostname is synthetic and is not a deployed endpoint |
+| `python3 scripts/audit_public.py` | PASS after staging exact reviewed inventory: staged/worktree secret heuristics and production artifact boundary; no private local files scanned |
+| `git diff --check` and `git diff --cached --check` | PASS: final whitespace/scope and staged diff review, no secrets identified |
+| Production firmware build / physical ESP32 / HA / OTA / outbound Web Push | NOT RUN: unchanged and outside scope |
+| Public CA issuance / DNS/router/firewall / LAN listener / public static hosting | NOT RUN: separately authorized owner operations only |
+| Actual Safari / installed iPhone / trusted-public-CA / Wi-Fi/cellular / permission / first-use / certificate negative acceptance | NOT RUN: use the [Phase B/C runbook and result template](https_spike/README.md) with the owner |
+
+Environment: Python 3.10.6, OpenSSL 3.0.2 and available Node 22.20.0 (satisfies package Node >=22;
+repository `.nvmrc` pins 22.21.0, not installed here). No dependency installed.
+Initial loopback test was blocked by sandbox socket policy; authorized execution
+outside the sandbox passed, listening only on loopback and cleaning temporary
+certificates/server afterward. Existing library tests initially hit sandbox
+`spawnSync EPERM`; the authorized offline retry passed. Initial browser test used
+the shell's old Node 14 and failed on modern built-ins; rerun with Node 22.20.0
+passed. These are tooling constraints, not iOS observations.
+
+No genuine ownership proof, manufacturing identity, durable owner/recovery state,
+autonomous DNS-01 renewal, expired-leaf/no-Wi-Fi recovery, offline AP setup or
+ESP32 concurrent resource behavior is established. A trusted installed-iPhone
+transport PASS is still required before reviewing advancement; it never alone
+closes P0. Cleanup instructions preserve the deployed push experiment and leave
+certificate/DNS/account removal to the authorized owner.

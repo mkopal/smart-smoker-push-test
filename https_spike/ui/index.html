@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; connect-src 'self' DEVICE_ORIGIN; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <link rel="stylesheet" href="style.css">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <title>Smart Smoker HTTPS Spike</title>
+</head>
+<body>
+  <h1 data-i18n="app.title"></h1>
+  <p data-i18n="app.instructions"></p>
+  <label for="language" data-i18n="app.language"></label>
+  <select id="language"></select>
+  <p><span data-i18n="app.endpoint"></span> <code id="endpoint"></code></p>
+  <p id="mode"></p>
+  <button id="run" disabled data-i18n="app.run"></button>
+  <p role="status" id="status"></p>
+  <noscript>JavaScript is required to run the HTTPS probe.</noscript>
+  <script src="i18n.js"></script>
+  <script src="catalogs.js"></script>
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

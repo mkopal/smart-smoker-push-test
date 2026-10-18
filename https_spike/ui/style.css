@@ -1,0 +1,3 @@
+body { max-width: 42rem; margin: 2rem auto; padding: 0 1rem; font: 1rem/1.5 system-ui, sans-serif; }
+button, select { font: inherit; padding: .6rem; }
+code { overflow-wrap: anywhere; }
