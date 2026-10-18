@@ -49,6 +49,11 @@ to the smoker; the isolated publisher uses its privately provisioned subscriptio
 
 ## Independent HTTPS transport experiment
 
+[P0 — Device Provisioning, Configuration & Recovery](SECURITY.md#p0--device-provisioning-configuration--recovery)
+specifies first-owner setup, configuration and transactional Wi-Fi migration,
+cross-platform bootstrap dependencies and minimum real-phone experiments.
+Architecture only; complete enrollment, recovery and production remain NO-GO.
+
 [Offline recovery feasibility assessment](OFFLINE_RECOVERY.md): the combined
 expired-leaf/no-usable-Wi-Fi case is NO-GO for the proposed HTTPS bootstrap.
 No recovery simulator was implemented; a minimal real-iPhone acceptance protocol

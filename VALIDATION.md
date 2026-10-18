@@ -1,5 +1,58 @@
 # Validation evidence
 
+## P0 provisioning, configuration and recovery architecture — 2026-10-18
+
+**Architecture specified; lifecycle/browser/device/security acceptance NO-GO.**
+See [lifecycle specification](SECURITY.md#p0--device-provisioning-configuration--recovery).
+This iteration changes documentation only. `OFFLINE_RECOVERY.md` and all prior
+evidence entries are unchanged. Existing findings were first reviewed, revalidated
+and committed locally as `3659939` (`docs: record offline recovery browser bootstrap blocker`)
+on `experiment/offline-recovery-feasibility`; no push, merge or deployment.
+
+The extension covers factory identity, physical possession, first owner, Wi-Fi and
+configuration writes, transactional network migration/rediscovery/service checks,
+phone grants/revocation, transfer/reset and certificate lifecycle. It distinguishes
+all four browser/installed contexts, manufacturing/DNS/offline dependencies and
+source-backed platform rules from real-phone evidence. The next proposed experiment
+is the same-PWA protected-AP exchange with a valid per-unit public-CA identity on
+actual iPhone and Android; credential-shaped canary only at the first browser gate.
+No simulator, live protocol endpoint or firmware was implemented. No compromise
+for combined Wi-Fi loss and certificate expiry was accepted.
+
+Official Fetch/W3C, Chrome, WebKit and CA sources were inspected and linked in the
+specification. Chrome's documented LNA-gated HTTP exceptions are explicitly qualified
+instead of claiming universal modern HTTP blocking. Apple TN3179's rendered content
+was unavailable to the research tool; no new Safari permission conclusion depends
+on it. These source checks are not device tests.
+
+Before the first commit, reran all commands in the previous assessment's table:
+`npm test`, both targeted Python suites (7 + 6 tests), local Pages build, public
+audit, audit-script syntax and staged/worktree whitespace checks: all PASS with
+Node 22.20.0. The five-file staged diff contained only the intended assessment,
+documentation links, validation and exact inventory entry. No unrelated changes.
+
+Architecture-step validation, from this repository with
+`export PATH="/home/mkopal/.nvm/versions/node/v22.20.0/bin:$PATH"`:
+
+| Command / check | Actual result |
+|---|---|
+| `npm test` | PASS: existing offline publisher/enrollment/localization/worker behavior |
+| `python3 -m unittest discover -s tests -p 'test_site.py' -v` | PASS: 7 static/localization/inventory/security-boundary tests |
+| `python3 -m unittest discover -s tests -p 'test_pages.py' -v` | PASS: 6 artifact, original-source preservation and deployment-isolation tests |
+| `python3 build_pages.py`, `python3 scripts/audit_public.py` | PASS: local 21-file artifact, exact Git inventory and staged/worktree secret heuristics; no hosting action |
+| `python3 /tmp/check_p0_lifecycle_docs.py` | PASS: three Markdown files only, local links/anchors/fences, offline findings byte-for-byte unchanged, original security boundary and historical validation preserved |
+| `git diff --check`, `git diff --cached --check` and final diff review | PASS: focused append-only specification/validation and README link; no code, inventory or public artifact contract changes |
+| E1 actual iPhone/Android, E2 spare-board migration, E3 rescue/renewal | NOT RUN; future test prerequisites and measurable acceptance documented |
+| New lifecycle simulator / independent security review | NOT RUN; deliberately no simulator, no security certification claimed |
+| Production firmware/build/flash, network/DNS/CA/credentials, emulator/Pages, push/merge/deploy | NOT RUN: prohibited in this iteration; no dependencies installed |
+
+Host checks cover unchanged artifact/security boundaries and documentation hygiene,
+not the proposed lifecycle behavior. No Wi-Fi listener or real network change is
+needed. Full TLS/ESP32 suites and firmware builds are not applicable to this
+documentation-only extension. First-use/expired identity, true possession, actual
+DNS scope, protected storage, clock/bootstrap, services/resources, phone permissions
+and usability remain explicit unverified or blocked gates.
+
 ## Offline recovery feasibility-first assessment — 2026-10-18
 
 **NO-GO for expired-leaf / no-usable-Wi-Fi recovery through the current HTTPS
