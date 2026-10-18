@@ -7,7 +7,7 @@ import sys
 ROOT = Path(__file__).resolve().parents[1]
 PUBLIC_FILES = {
     '.gitignore', '.nvmrc', '.github/workflows/pages.yml', 'README.md', 'NOTICE.md',
-    'SECURITY.md', 'VALIDATION.md', 'PUBLIC_FILES.txt', 'build.py', 'package.json',
+    'SECURITY.md', 'VALIDATION.md', 'OFFLINE_RECOVERY.md', 'PUBLIC_FILES.txt', 'build.py', 'package.json',
     'build_pages.py', 'PAGES_FILES.txt', 'tests/test_pages.py',
     'package-lock.json', 'publisher.cjs', 'library-test.js', 'tests.js',
     'scripts/catalogs.py', 'scripts/audit_public.py', 'scripts/browser-test.cjs',

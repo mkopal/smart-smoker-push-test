@@ -49,6 +49,11 @@ to the smoker; the isolated publisher uses its privately provisioned subscriptio
 
 ## Independent HTTPS transport experiment
 
+[Offline recovery feasibility assessment](OFFLINE_RECOVERY.md): the combined
+expired-leaf/no-usable-Wi-Fi case is NO-GO for the proposed HTTPS bootstrap.
+No recovery simulator was implemented; a minimal real-iPhone acceptance protocol
+defines the missing evidence and conditional rescue-network experiment.
+
 Owner-observed iPhone 14 / iOS 27.0.1 Safari and Home Screen synthetic LAN HTTPS
 checks passed on 2026-10-18 without custom roots or warning bypass. The root push
 PWA stayed in place; the isolated spike is under `/https-spike/`. This is separate

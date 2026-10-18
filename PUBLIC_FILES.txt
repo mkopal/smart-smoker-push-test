@@ -2,6 +2,7 @@
 .gitignore
 .nvmrc
 NOTICE.md
+OFFLINE_RECOVERY.md
 PAGES_FILES.txt
 PUBLIC_FILES.txt
 README.md

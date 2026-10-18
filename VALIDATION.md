@@ -1,5 +1,47 @@
 # Validation evidence
 
+## Offline recovery feasibility-first assessment — 2026-10-18
+
+**NO-GO for expired-leaf / no-usable-Wi-Fi recovery through the current HTTPS
+design.** See [assessment, state contract, threats and minimal phone protocol](OFFLINE_RECOVERY.md).
+This is a source-backed architectural conclusion, not a new observed phone result.
+The prior ordinary LAN HTTPS PASS below is preserved without widening its scope.
+
+Inspected clean baseline `a4d9670` on `esp32-direct-web-push-poc`, existing tests,
+HTTPS server/UI/build/security boundaries and workers, plus the main repository's
+instructions, ADR-008/009, architecture/enrollment, plan and validation records.
+Created local branch `experiment/offline-recovery-feasibility`. No simulator was
+implemented because its assumed trust transition would not test browser bootstrap.
+Documented conditional hotspot/ACME ordering without accepting a product compromise.
+WebTransport/WebRTC are explicitly distinguished from ordinary Fetch; neither is
+claimed to be a qualified replacement. Official Fetch/W3C, WebKit, Apple and CA
+sources are linked in the assessment. No live infrastructure was contacted for
+device tests or modified; public documentation research only.
+
+Changed files: `OFFLINE_RECOVERY.md`, `README.md`, this record, `PUBLIC_FILES.txt`
+and `scripts/audit_public.py`. The last two add only the new documentation path to
+the exact repository allowlist; the Pages artifact inventory remains unchanged.
+
+Commands below run from this repository with
+`export PATH="/home/mkopal/.nvm/versions/node/v22.20.0/bin:$PATH"` (Node 22.20.0):
+
+| Command / check | Actual result |
+|---|---|
+| `npm test` | PASS: existing offline publisher/enrollment/localization/worker fixtures; no browser or recovery feasibility claim |
+| `python3 -m unittest discover -s tests -p 'test_site.py' -v` | PASS: 7 tests, including exact documentation inventory and audit negative cases in a temporary Git fixture |
+| `python3 -m unittest discover -s tests -p 'test_pages.py' -v` | PASS: 6 tests, unchanged original PWA bytes, exact 21-file artifact and deployment isolation |
+| `python3 build_pages.py` | PASS: local build only, 11 root and 10 isolated spike files |
+| `python3 -m py_compile scripts/audit_public.py` | PASS |
+| `python3 scripts/audit_public.py` | PASS: exact reviewed Git inventory, staged/worktree secret heuristics and unchanged static artifact boundary |
+| `git diff --check`, `git diff --cached --check`, final diff/source-scope review | PASS: five focused files, documentation plus its exact allowlist entry; existing transport/UI/firmware/workflow unchanged |
+| New recovery simulation, real iPhone/AP/expiry/hotspot/ACME/ESP32/security review | NOT RUN; simulator intentionally deferred and physical protocol supplied, no acceptance gate closed |
+| Firmware compile/flash, live emulator restart, DNS/token/certificate operations, hosting, push/merge/deploy | NOT RUN: outside authorized scope; no dependencies installed |
+
+Full TLS/ESP32 host suites were not rerun: changes affect documentation and its
+exact allowlist only. Relevant static/audit/build regressions above ran without
+starting a network listener or accessing private inputs. Host checks do not prove
+Safari trust, ESP32 resource fit, durable authorization or production readiness.
+
 ## Owner-observed iPhone HTTPS transport — 2026-10-18
 
 **PASS for the reported synthetic LAN transport only; P0/enrollment/production NO-GO.**
