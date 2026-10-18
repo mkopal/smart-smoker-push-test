@@ -1,10 +1,13 @@
 # P0 local HTTPS transport spike
 
-Status: **HARDWARE_VALIDATION_PENDING; NO-GO for advancing to real-device HTTPS
-integration. P0 and production integration remain NO-GO.** Host results cannot
-close the trusted-iPhone gate. No iPhone, certificate issuance, DNS/router change,
-public hosting, LAN listener, ESP32, HA, OTA or outbound Web Push operation has
-been performed by this implementation.
+Status: **Owner-observed ordinary Linux LAN HTTPS transport PASS** on iPhone 14 /
+iOS 27.0.1, Safari tab and installed Home Screen PWA (2026-10-18). See the
+[qualified record and limits](../VALIDATION.md#owner-observed-iphone-https-transport--2026-10-18).
+Owner reports normal system trust and the synthetic-check success message in both
+modes, supported by screenshots; this documentation task did not independently
+instrument or repeat those runs. P0, real-device HTTPS integration and production
+remain **NO-GO**: ownership, offline/AP, TLS negatives/recovery, Android, certificate
+lifecycle and ESP32 resources are still unverified. Direct Web Push is a separate PoC.
 
 This Linux-only test tool follows the main repository's
 [P0 enrollment architecture](../../smart-smoker/docs/WEB_PUSH_ENROLLMENT.md) and
@@ -121,7 +124,9 @@ See [VALIDATION](../VALIDATION.md#p0-local-https-emulator--2026-10-18) for actua
 
 ## Phase B: owner-authorized certificate, DNS and network preparation
 
-Everything below is an **owner-run plan, NOT RUN**. Obtain separate authorization
+The baseline setup was subsequently owner-run and its qualified results are recorded
+in VALIDATION. The following is the retained setup/reproduction runbook, not authority
+to repeat or change live infrastructure. For any new operation obtain separate authorization
 for certificate issuance, DNS/router/firewall changes, LAN server start and public
 static hosting before performing them. Do not publish or upload anything as part
 of Phase A. An existing valid lab certificate/name can avoid issuance, but still
@@ -253,8 +258,11 @@ for TLS, DNS, CORS or permission failures; do not classify the cause from UI alo
 
 ## Phase C: actual owner-run iPhone checklist
 
-All rows initially **NOT RUN**. Record separately Safari tab and installed Home
-Screen behavior; only the latter qualifies the requested installed-PWA gate.
+Initially all rows were NOT RUN. The owner has since confirmed ordinary trusted
+transport and the synthetic success message in both modes; see VALIDATION. These
+observations do not complete every row below. TLS negative controls, browser foreign
+Origin, offline/AP, interruption/recovery, prompts and repetitions remain NOT RUN
+unless separately evidenced. Record Safari and Home Screen results separately.
 
 | Check | Exact procedure / expected result |
 |---|---|
@@ -272,12 +280,15 @@ Screen behavior; only the latter qualifies the requested installed-PWA gate.
 
 Any denied/unavailable trust or transport must fail closed. Retain FAIL/NOT RUN;
 never relabel a self-signed root test, desktop pass or TLS-warning bypass as PASS.
-No physical test has been confirmed by the owner in this implementation session.
+Physical Safari/Home Screen transport was subsequently owner-confirmed; the original
+implementation session had no such result. Preserve that historical distinction.
 
 ## Result template and integration decision
 
 Copy the table into a private owner-controlled run record; publish only sanitized
-results, with no LAN addresses, email/account details, private keys or subscriptions:
+results, with no email/account details, private keys or subscriptions. This public
+experimental repository also excludes private LAN addresses under its existing audit;
+use the main canonical record for the owner-approved lab address:
 
 ```text
 Run date/time/timezone:

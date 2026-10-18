@@ -47,6 +47,15 @@ The laptop published the 2026-10-15 owner-observed notification. The isolated
 sound to the locked iPhone on 2026-10-16. The enrollment PWA has no direct connection
 to the smoker; the isolated publisher uses its privately provisioned subscription.
 
+## Independent HTTPS transport experiment
+
+Owner-observed iPhone 14 / iOS 27.0.1 Safari and Home Screen synthetic LAN HTTPS
+checks passed on 2026-10-18 without custom roots or warning bypass. The root push
+PWA stayed in place; the isolated spike is under `/https-spike/`. This is separate
+from direct ESP32 push and does not establish ownership or ESP32 HTTPS hosting.
+[Qualified evidence](VALIDATION.md#owner-observed-iphone-https-transport--2026-10-18),
+[spike runbook](https_spike/README.md); P0 and production remain NO-GO.
+
 ## Local setup and checks
 
 Requirements: Linux/POSIX file permissions, Git, Node.js 22+ with matching npm,

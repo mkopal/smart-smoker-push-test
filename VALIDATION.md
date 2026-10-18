@@ -1,5 +1,76 @@
 # Validation evidence
 
+## Owner-observed iPhone HTTPS transport — 2026-10-18
+
+**PASS for the reported synthetic LAN transport only; P0/enrollment/production NO-GO.**
+Owner confirmation supplied 2026-10-18, supported by screenshots according to the
+owner; this task did not inspect screenshots, instrument phone requests, repeat
+live tests or verify remote CI. Earlier NOT RUN records remain historical.
+
+| Metadata | Owner-supplied value |
+|---|---|
+| Phone / OS / network | Apple iPhone 14 / iOS 27.0.1 / owner's local Wi-Fi/LAN |
+| App origin / application | `https://mkopal.github.io` / `https://mkopal.github.io/smart-smoker-push-test/https-spike/` |
+| Linux HTTPS origin | `https://smoker-test.navodio.cz:8443` |
+| Certificate | Let's Encrypt YR1; subject/SAN `smoker-test.navodio.cz`; Cloudflare DNS-01 |
+| Validity (UTC) | 2026-10-18 15:39:20 through 2027-01-16 15:39:19 |
+| Trust | No custom root or certificate-warning bypass, owner-reported |
+| Renewal dependency | Temporary Cloudflare API token expires 2026-11-17 before leaf expiry; replacement/autonomous lifecycle unsolved |
+
+| Observation | Reported result |
+|---|---|
+| Linux normal trusted TLS, no disabled validation | PASS |
+| GET `/spike/v1/challenge` / CORS preflight | PASS: 200 / 200 with expected headers |
+| Disallowed Origin / unauthorized POST | PASS: 403 without allow-origin / 401 |
+| Existing push PWA root / spike below `/https-spike/` | PASS: preserved / deployed |
+| PR CI / main CI | PASS: checks without deployment / build and deployment succeeded |
+| Safari tab | PASS: loaded, detected tab mode, tap on `Run synthetic HTTPS checks` produced `Checks passed in this session` |
+| Installed Home Screen PWA | PASS: installed/launched, detected Home Screen mode, same action and success message |
+
+Inspected local UI `4f8b3f9` requires challenge 200, missing-token 401, malformed 400,
+synthetic commit 200 and replay 409 for the success message. This is a source-level
+interpretation of owner-observed UI, not independent per-request iPhone evidence.
+Deployed SHA, screenshot IDs, exact run time, Safari build, certificate fingerprint,
+resolver details, prompts/denials and repeated runs were not supplied. No personal
+phone identifiers or private certificate/token material are recorded.
+
+Exact owner-supplied lab IPv4 is retained only in the main project's
+[canonical record](../smart-smoker/docs/VALIDATION.md#owner-observed-iphone-https-transport--2026-10-18);
+it is intentionally omitted here to preserve this repository's existing public
+private-address audit, without changing/weakening the audit. GitHub readers can use
+[main validation](https://github.com/mkopal/smart-smoker/blob/esp32-direct-web-push-poc/docs/VALIDATION.md).
+
+These passes promote ordinary Linux LAN transport on this configuration only.
+The public fixed token is no ownership proof. Offline AP/DNS, phone-side expired/
+wrong-hostname rejection, recovery/permissions, Android, manufacturing/owner protocol,
+durable storage, autonomous renewal, actual ESP32 server and concurrent fit remain
+unverified. Prior direct ESP32 locked-iPhone push/sound is independent and unintegrated.
+The two lab PWAs do not change the one-PWA product requirement.
+
+See the main [bootstrap options/threat model and next offline P0](../smart-smoker/docs/WEB_PUSH_ENROLLMENT.md#bootstrap-options-and-constraint-conflict).
+No live change, new CI run, push or deployment occurred in this documentation task.
+Both initial trees were clean: main `0b2e39a`, experiment `4f8b3f9`, branch
+`esp32-direct-web-push-poc`. Cached remote-tracking refs/history inspected but not
+refreshed; cached origin/main predates reported merge, so no deployed SHA is inferred.
+
+| Local command/check executed for this documentation update | Result |
+|---|---|
+| Main: `export PATH="$PWD/local/task-install:/home/mkopal/.nvm/versions/node/v22.20.0/bin:$PATH"; task --list; task test` | PASS: pinned existing go-task, 90 Python tests, repository/dashboard/generated-web and behavioral host checks; no hardware |
+| Experiment: `export PATH="/home/mkopal/.nvm/versions/node/v22.20.0/bin:$PATH"; npm test` | PASS: offline publisher/enrollment/localization/worker behavior |
+| Experiment: `npm run test:library` with the same Node PATH | PASS on authorized offline rerun outside sandbox; first run failed because sandbox blocked Node subprocess with EPERM. Actual encryption/decryption, wrong-auth rejection, ES256 and CLI lifecycle; no push |
+| Experiment: `python3 -m unittest discover -s tests -v` with the same Node PATH | PASS: 31 tests on authorized rerun, temporary loopback TLS only. First sandbox run could not open loopback listener (EPERM); not a product failure or real-phone test |
+| Experiment: `python3 build_pages.py`; `python3 scripts/audit_public.py` | PASS: 11 root files plus 10 isolated spike files, exact public inventory/index/worktree secret heuristics and artifact boundary; local build only |
+| `python3 /tmp/check_smoker_enrollment_docs.py` | PASS: nine Markdown-only changed files, added local links/anchors, balanced fences, seven P0 blockers and unchanged historical enrollment proposal body. Initial check caught two incorrect relative links, corrected before final PASS |
+| Both: `git diff --check`; final diff/file-scope review | PASS: focused documentation-only changes, no code/UI/catalog/configuration/private artifacts changed; existing EN/CS behavior preserved |
+| Firmware compile/validation, new protocol model, independent security audit, real phone/device/live infrastructure checks | N/A for firmware build (no code/config changes); NOT RUN for new experiment/security/hardware/live checks. They remain explicit future gates |
+
+Logs and documentation helper are temporary `/tmp` files, not repository artifacts.
+No dependency installed. Secret/artifact heuristics and manual diff review are not
+an exhaustive security audit. Source research rechecked official DNS-01, Fetch,
+WebKit Home Screen and Apple hotspot documentation. Pinned IDF 5.5.5 rendered/raw
+retrieval was unavailable; moving stable resolved to 6.1 and does not qualify pinned
+interfaces or resource usage. No independent security certification is claimed.
+
 ## Successful isolated ESP32 PoC and full restoration — 2026-10-16
 
 Documentation finalization on `esp32-direct-web-push-poc`; clean initial baselines:
