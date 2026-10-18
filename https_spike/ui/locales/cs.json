@@ -14,5 +14,11 @@
     "passed": "Testy v této relaci prošly. Před přijetím výsledku zaznamenejte zařízení, prohlížeč, síť a certifikát.",
     "failed": "Testy selhaly nebo byly přerušeny. Ověřte důvěryhodné TLS, DNS, CORS, oprávnění a síť. Opakujte ručně; bez nezabezpečené náhrady.",
     "unavailable": "Zabezpečený kontext nebo service worker nejsou dostupné. Neobcházejte varování TLS."
+  },
+  "offline": {
+    "caching": "Připravuji offline aplikaci. Nechte stránku online, dokud nebude připravena.",
+    "ready": "Offline aplikace ověřena. Uloženy jsou pouze statické soubory; testy zařízení stále vyžadují dostupné HTTPS.",
+    "reload": "Offline aplikace zatím tuto stránku neovládá. Zavřete všechna okna HTTPS Spike a znovu otevřete online.",
+    "unavailable": "Offline aplikace není úplná nebo kompatibilní. Testy zařízení jsou vypnuté. Připojte internet, zavřete všechna okna HTTPS Spike a znovu otevřete online."
   }
 }

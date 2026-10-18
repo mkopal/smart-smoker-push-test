@@ -48,7 +48,7 @@ by the Pages build. All remain outside Git and the artifact.
 Its discovered EN/CS catalogs reuse the approved Intl adapter and catalog validator.
 Its manifest/worker scope and start URL are `./`; host it in its own approved path
 or dedicated public origin, never replace the currently deployed push experiment.
-There is no worker fetch handler/offline shell. This spike does not qualify offline
+The spike-only [offline shell](#offline-shell-prerequisite--2026-10-19) caches static files. This does not qualify offline
 AP onboarding or shared storage with the existing installed push experiment.
 
 The browser loads the shell from a **public HTTPS app origin A**, while API requests
@@ -275,7 +275,7 @@ unless separately evidenced. Record Safari and Home Screen results separately.
 | Wi-Fi disconnect/reconnect | Start a request, disconnect Wi-Fi, observe timeout/failure; reconnect, allow DNS to settle, tap Run for a fresh challenge. No queued/background retry or replay mutation. Repeat after screen lock/wake and interruption |
 | Wi-Fi to mobile data | Switch to cellular away from LAN: local API must be unreachable; reconnect to local Wi-Fi and retry successfully. A still-loaded shell is not proof of local reachability; no internet tunnel is allowed |
 | Subsequent use | Close/reopen from Home Screen and repeat; test repeated taps and server restart (old challenge rejected). Capture prompts/absence and permission recovery. Switch EN/CS; language is the only application-persisted preference |
-| First install and shell network loss | Record whether shell loads. Worker has no offline cache, so an uncached/offline reload can fail. This is an explicit spike limitation, not acceptance of offline AP onboarding |
+| First install and shell network loss | Record whether shell loads. Use the offline-shell matrix below; an uncached/incomplete installation must fail. Phone cold-start and AP onboarding remain unverified |
 | Browser restrictions | Record DNS filters, VPN/Private Relay, guest isolation, LNA prompts/Settings and any error diagnostics. Keep screenshots free of credentials; summarize observations rather than publishing raw network captures |
 
 Any denied/unavailable trust or transport must fail closed. Retain FAIL/NOT RUN;
@@ -356,3 +356,157 @@ command is provided, because certificate/account custody may need retention.
   platform local-network privacy reference, not physical Home Screen test evidence.
 - [Chrome Local Network Access](https://developer.chrome.com/blog/local-network-access/):
   evolving browser LAN permission; not evidence of Safari support.
+
+## Offline shell prerequisite — 2026-10-19
+
+The isolated spike now has an offline static shell. This supersedes earlier
+statements here that its worker has no fetch handler. The root Web Push PWA is
+unchanged and still does not promise offline page navigation. This is local source,
+not a deployed release or evidence of phone acceptance. Secure enrollment,
+production integration and offline recovery remain **NO-GO**.
+
+The artifact still contains exactly ten files. `sw.js` is the browser-installed
+worker; its generated release manifest precaches exactly these nine files:
+
+```text
+app.js
+catalogs.js
+config.js
+i18n.js
+icon-192.png
+icon-512.png
+index.html
+manifest.webmanifest
+style.css
+```
+
+`catalogs.js` bundles both EN/CS catalogs; `config.js` contains the fixed public
+origin and shell version only. No raw catalog URL, root asset, server, build-info,
+API response or runtime data is cached. Version `v1-<SHA-256>` covers the worker
+template and every shell file, including generated configuration, catalogs and
+icons. The generated worker also carries the SHA-256 of each final file. Installation
+uses no-store, omitted credentials, rejected redirects and exact byte verification;
+already valid same-release entries are reused without writes or network access.
+Only missing or invalid entries are fetched and verified before storage. Any failed
+asset rejects installation without deleting any release cache. Interrupted installs
+may leave verified partial entries for retry; complete-cache validation prevents
+serving them. Artifact validation checks the same identity before staging.
+
+Only exact allowlisted same-origin GET URLs and the exact spike directory navigation
+map to the cached shell; queries and unknown paths have no fallback. Each served
+asset requires the complete release to exist and match its hashes. Missing/corrupt
+or extraneous entries produce a network error, never a partial shell or invented
+success. The UI verifies the controlling worker and matching release via a message
+before enabling synthetic checks. EN/CS offline readiness is separate from API status.
+Fresh documents/reloads start with no successful API result; restored pages reset
+that status. An unreachable API must display the existing failure message.
+
+The worker does not call `respondWith`, `waitUntil` or `fetch` for device requests,
+including GET challenge, POST enroll and OPTIONS. Those requests use the existing
+normal browser networking path and may fail on DNS/TLS/CORS/permissions/network.
+There is no runtime cache write, background sync, queue, request replay, simulated
+response or offline success. Only a deliberate Run action sends synthetic requests.
+
+An updated worker waits for old spike windows to close; no `skipWaiting` forces a
+release onto existing clients. Activation verifies completeness and claims clients
+before removing old caches with this exact spike scope prefix. A verification or
+claim failure therefore does not delete the previous release. Root and sibling
+workers/caches are untouched. Old workers whose cache was removed fail closed and
+do not recreate it. A previously complete active release can remain usable while
+a broken candidate is rejected. Offline code cannot know a newly published release,
+revocation or latest server policy: there is no absolute freshness guarantee. Return
+online periodically and close all spike windows to accept a new release. No expiry
+exception, TLS fallback or secure recovery mechanism is implied by cached UI.
+
+### Manual matrix: all results currently NOT RUN
+
+Any hosting/publication or network/AP preparation needs separate owner authorization.
+Use the existing spike URL/path and installation identity; never replace the root
+push PWA. Do not modify the running emulator to execute these shell-only checks.
+Record each context separately, three repetitions per locale, model, OS/browser build,
+source SHA, generated release ID, URL, time/timezone, Wi-Fi/cellular/VPN settings,
+worker scope, observed readiness/failure and screenshots without private data.
+
+| Context | Online preparation | Offline cold launch and reload |
+|---|---|---|
+| Safari tab | Open the approved `/https-spike/` URL online; wait for verified offline-shell message; switch EN/CS. If needed close all spike tabs then reopen online | Disable cellular and internet access using an already approved test arrangement. Close the tab, open a new tab and type the exact URL. Reload; repeat after Safari termination and phone restart. Require full localized rendering and verified shell |
+| iOS Home Screen PWA | Install from Safari using the same spike URL. Open the icon online and wait for verified shell **inside that installed context**; tab preparation alone is insufficient | Close the PWA, remove internet/cellular, launch its icon; reload using available app/browser controls or close/reopen, then repeat after phone restart. Record actual standalone mode and launch behavior |
+| Android Chrome | Open the spike online and wait for verified shell; record Chrome version, EN/CS | Remove internet/cellular, close the tab and open a new tab at the exact URL; reload, terminate/reopen Chrome, then restart phone and repeat |
+| Android installed PWA | Install the spike from Chrome and confirm verified shell inside the installed app | Remove internet/cellular, close the app and launch its icon; reload or close/reopen, then repeat after phone restart; record standalone mode |
+
+For **every row**, perform these controls:
+
+1. First-ever offline navigation without prior completed cache must fail. Use a
+   separate disposable browser profile/test device; do not clear existing push PWA
+   storage to create this control. An open tab, back-forward snapshot or ordinary
+   HTTP cache hit is not a cold-launch PASS.
+2. After verified online preparation, cold-launch offline and reload in both locales.
+   Shell readiness must be distinct from device reachability. Tap Run with the API
+   unreachable: require failure within the existing 10 s deadline, no challenge or
+   synthetic enrollment success, and no automatic retry after connectivity returns.
+3. If an already authorized LAN API is reachable while public internet is absent,
+   record fresh network evidence separately. A shell PASS alone is not a SoftAP,
+   resolver, public-CA trust, ownership or enrollment PASS. This task authorizes no
+   AP/DNS/TLS changes and performs no such positive phone test.
+4. In a disposable local validation profile, remove/corrupt one cached shell asset
+   and reload: require navigation failure. Return online, close all spike windows
+   and restore a complete cache through a fresh worker installation; unregister only
+   the spike registration if necessary. Never delete root subscriptions or all
+   origin storage. Cache eviction can require this online recovery.
+5. With two separately approved local test releases, keep an old window open during
+   upgrade, then close all spike windows and reopen online. Confirm the new version
+   and only its cache; cold-launch it offline. A deliberately incomplete candidate
+   must fail installation while the complete previous release remains valid.
+6. Confirm the original root push application has the same scope/behavior and no
+   spike assets or API data in its storage. Do not create subscriptions or send push.
+
+Desktop verification (run from repository root with Node 22+):
+
+```bash
+npm run test:spike:offline
+python3 build_pages.py
+npm run test:spike:browser
+```
+
+The first command executes a deterministic worker/Cache API simulation. The browser
+command uses real desktop Chromium, an ephemeral loopback static server/profile,
+network-offline emulation and disabled HTTP cache. It tests fresh-document launch,
+reload, EN/CS, unreachable API, missing cache entry, and root/spike isolation. It does
+not test mobile installation, OS process restoration/reboot, Safari/WebKit, Android,
+radio routing, storage retention/eviction timing or real-device cold start.
+
+Current gates: Safari tab **NOT RUN**; iOS Home Screen **NOT RUN**; Android Chrome
+**NOT RUN**; Android installed PWA **NOT RUN**; protected SoftAP/fresh trusted device
+API **NOT RUN**; expired TLS/combined recovery **BLOCKED / NO-GO**. The historical
+[offline assessment](../OFFLINE_RECOVERY.md) is retained unchanged; its no-cache
+implementation observations refer to the pre-spike baseline. Its recovery blockers
+are not removed by this static-shell change.
+
+
+### Lifecycle hardening review — 2026-10-19
+
+Install never deletes a release cache, including on error. Verified same-release
+entries remain immutable to the installer; retries resume missing or corrupt files.
+This avoids deleting an active shell during reinstalls and avoids dependence on
+catch/finally running after worker termination. No staging cache/pointer or copy
+transaction is needed: release-specific storage plus exact full-shell verification
+already gates usability. Incomplete candidate caches can remain until retry or a
+successful activation cleans them. They consume storage; browser-controlled quota
+and eviction remain limitations, not guarantees this worker can override.
+
+A normal update with byte-identical worker source does not invoke installation;
+that narrow lifecycle optimization is not a reason to delete retained CacheStorage
+on every other install. The [Service Worker specification](https://www.w3.org/TR/service-workers/#update-algorithm)
+defines update comparison and [unregister behavior](https://www.w3.org/TR/service-workers/#dom-serviceworkerregistration-unregister),
+including continued control of existing clients. The regression test deliberately
+changes only a loopback worker fixture comment to force a real install while keeping
+the release manifest unchanged. With shell asset responses forced to fail, Chromium
+must still install the same release without fetching assets and retain a working
+active shell. A second fixture with a different release ID must fail installation
+without damaging it. These fixture variants never modify the staged artifact or
+running emulator. Abrupt interruption/resume and claim/quota failures are covered
+by deterministic VM tests; they are not real mobile power-loss observations.
+
+Retaining old cache data on activation failure is not a promise of registration
+rollback: browser lifecycle decisions and external storage loss remain outside
+application control. No fallback to an unverified or obsolete shell is introduced.

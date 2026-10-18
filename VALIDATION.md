@@ -491,3 +491,200 @@ ESP32 concurrent resource behavior is established. A trusted installed-iPhone
 transport PASS is still required before reviewing advancement; it never alone
 closes P0. Cleanup instructions preserve the deployed push experiment and leave
 certificate/DNS/account removal to the authorized owner.
+
+## P0 HTTPS spike offline shell — 2026-10-19
+
+**Local implementation/host validation PASS; real-device cold-start acceptance
+PENDING. Secure enrollment and production integration remain NO-GO.** No new phone,
+SoftAP, certificate recovery or firmware claim is made.
+
+Baseline: clean `experiment/offline-recovery-feasibility` at
+`17065af` (`docs: specify P0 provisioning and transactional network lifecycle`).
+Work uses dedicated local branch `experiment/https-spike-offline-shell`. Reviewed
+repository structure/instructions, provisioning architecture, SECURITY lifecycle/E1
+readiness criteria, latest validation records and `OFFLINE_RECOVERY.md`. No separately
+named SoftAP physical readiness report was found in the two repository file
+inventories or matching temporary report paths; the latest available readiness
+basis is SECURITY's E1 experiment and its 2026-10-18 validation entry. No missing
+report or physical observation is inferred. The historical offline assessment is
+byte-for-byte unchanged; its pre-change no-cache description is superseded only
+for this isolated spike by the new runbook.
+
+The spike builder generates explicit `v1-<content SHA-256>` identity and exact asset
+hashes, with nine static precache files and the browser-installed tenth worker.
+Worker installation/activation, offline navigation, complete-cache validation,
+release upgrade/cleanup and UI readiness use only the spike scope. Exact device
+origin `https://smoker-test.navodio.cz:8443`, CSP, both locales, API request options
+and the root application's worker/manifest/scope remain preserved. API requests
+never enter `respondWith`, worker fetch, Cache API or a retry queue.
+
+Commands below use the existing Node installation, no dependency installation:
+
+```bash
+cd /home/mkopal/Projects/git/smart-smoker-push-test
+export PATH="/home/mkopal/.nvm/versions/node/v22.20.0/bin:$PATH"
+npm test
+npm run test:library
+python3 -m unittest discover -s tests -v
+python3 build_pages.py
+npm run test:spike:browser
+npm run test:browser
+python3 scripts/audit_public.py
+git diff --check
+git diff --cached --check
+```
+
+| Executed check | Result and limits |
+|---|---|
+| `npm test` | PASS: existing publisher/enrollment/localization/worker suite, no network |
+| `npm run test:library` | PASS: actual offline crypto/private CLI fixtures after sandbox EPERM retry |
+| Full Python unittest discovery | PASS: 33 methods, including generated-worker offline cache simulation, content identity, missing/corrupt artifact, exact inventory, loopback TLS and existing boundaries |
+| Generated worker VM tests (invoked by Python discovery) | PASS: exact nine assets, complete offline shell, exact directory/index navigation, no runtime fetch, failed install/404/redirect/mixed bytes, incomplete/corrupt/extra cache, upgrade cleanup and obsolete worker failure, root/sibling cache preservation, GET/POST/OPTIONS/other-method API non-interception |
+| UI VM tests (invoked by Python discovery) | PASS: matching worker required; incomplete/mismatched/root controller disables checks; existing synthetic success/401/400/replay and per-request network failures, EN/CS, double-tap and storage boundary |
+| `python3 build_pages.py` | PASS: exact 21-file artifact, 11 root + 10 spike; generated release integrity and fixed CSP/origin validation |
+| `npm run test:spike:browser` | PASS: real desktop Chromium, loopback static server, disposable profile, root then spike registration, verified shell, fresh-document offline navigation/reload with HTTP cache disabled, EN/CS, unreachable API failure, missing-asset navigation failure and root offline failure |
+| `npm run test:browser` | PASS: original root browser smoke test, unchanged scope/readiness/localization/storage/subscription boundary and expected offline page failure |
+| `python3 scripts/audit_public.py` | PASS: exact staged/worktree public inventory, secret heuristics and 21-file static boundary |
+| `git diff --check`, `git diff --cached --check`, final diff review | PASS: exact intended files only, no unrelated runtime/deployment changes |
+| Safari tab / iOS Home Screen / Android Chrome / Android installed PWA | **NOT RUN**, including true OS cold start/reboot, offline retention and mobile update/eviction behavior |
+| Protected SoftAP/local DNS/trusted API without internet, certificate negatives, actual enrollment/recovery | **NOT RUN / NO-GO**; static shell availability is only a prerequisite |
+
+Sandbox initially blocked loopback (`listen EPERM`) and the library's Node
+`spawnSync`; the approved retries used only temporary local test servers/fixtures
+and disposable Chromium profiles. An initial Chromium harness evaluation raced page
+script loading; explicit script readiness guards fixed the harness before the final
+passing run. Tests did not weaken CSP, bypass TLS validation or contact the running
+HTTPS emulator. Desktop network emulation is not iPhone/Android evidence.
+
+Unchanged-root evidence: before any source edit, `build.build()` wrote the baseline
+11-file artifact to `/tmp/smart-smoker-root-before-17065af`. After the combined build,
+every baseline file was compared using raw `read_bytes()` equality against `dist/`.
+All 11 matched, including `build-info.json` at the unchanged HEAD. Aggregate SHA-256
+(sorted filenames, each followed by NUL and its raw bytes):
+`d683feca18632334a2d9098be778fb04cc0cf65b9d54a6d90a8afd69361d59be`.
+`git diff 17065af -- web build.py .github/workflows/pages.yml PAGES_FILES.txt OFFLINE_RECOVERY.md`
+is empty. Existing Pages tests additionally compare all root bytes with the standalone
+root builder and verify repeatability. No source commit was made, so no build-info
+revision difference is hidden.
+
+Exact changed source inventory (20 files; no generated artifact is tracked):
+
+```text
+PUBLIC_FILES.txt
+README.md
+SECURITY.md
+VALIDATION.md
+build_pages.py
+https_spike/README.md
+https_spike/build.py
+https_spike/ui/app.js
+https_spike/ui/index.html
+https_spike/ui/locales/cs.json
+https_spike/ui/locales/en.json
+https_spike/ui/sw.js
+package.json
+scripts/audit_public.py
+scripts/https-spike-offline-browser.cjs
+scripts/https-spike-offline-test.cjs
+scripts/https-spike-test.cjs
+tests/test_https_spike.py
+tests/test_https_spike_offline.py
+tests/test_pages.py
+```
+
+Public deployed-path inventory remains exactly `PAGES_FILES.txt`: the root eleven
+files plus `https-spike/{app.js,catalogs.js,config.js,i18n.js,icon-192.png,icon-512.png,
+index.html,manifest.webmanifest,style.css,sw.js}`. The public Git inventory adds only
+the two new test scripts and offline unittest file; no new production dependency.
+The four-context [manual test matrix](https_spike/README.md#manual-matrix-all-results-currently-not-run)
+requires separate online preparation in each context, cold launch and reload,
+phone restart, both locales, failure of an unreachable API, negative cache controls,
+upgrade behavior and preserved root registration. All physical rows remain open.
+Offline code cannot detect an unseen newer/revoked server release; normal waiting
+lifecycle may retain a complete previous release. Browser eviction and long-term
+retention require real-device qualification and can require online repair.
+
+No ESP32/ESPHome change, flashing, real-host playbook, network/DNS/TLS/Cloudflare/router
+operation, running-emulator modification, Pages deployment, push, merge or commit.
+
+### Offline worker lifecycle hardening review — 2026-10-19
+
+Review found a defensive lifecycle bug in the staged installer: deleting `CACHE`
+on install entry and again on failure can erase a healthy same-release shell still
+used by another worker. Ordinary byte-identical updates do not run installation,
+and the builder includes the worker template in release identity, so normal build
+updates normally use different names. These narrower facts do not justify deleting
+retained cache data during every install/reinstall. The
+[specification's update comparison](https://www.w3.org/TR/service-workers/#update-algorithm)
+and [unregister semantics](https://www.w3.org/TR/service-workers/#dom-serviceworkerregistration-unregister)
+were reviewed; existing controlled clients can outlive unregistration. CacheStorage
+is not an installer-owned transaction that can safely be discarded on any error.
+
+Exact incremental modifications in this review (no additional public paths):
+
+```text
+SECURITY.md
+VALIDATION.md
+https_spike/README.md
+https_spike/ui/sw.js
+scripts/https-spike-offline-browser.cjs
+scripts/https-spike-offline-test.cjs
+```
+
+The installer now performs zero cache deletion. It validates each existing
+same-release response and skips it without a write or network request; only missing
+or invalid entries are fetched, validated and stored. Full exact-cache verification
+is still required before installation succeeds and before any response is served.
+Interrupted/failed installs can retain partial verified entries, which a fresh
+installer resumes; partial entries never bypass completeness checks. No staging
+cache, pointer or non-atomic promotion copy was added. Activation validates the
+replacement and awaits client claim before deleting old scope-prefixed releases.
+A verification/claim failure therefore preserves previous cache data. Keeping that
+data is not a browser registration rollback guarantee. The API fetch-handler branch,
+origin, scope, allowlist, CSP and root PWA are unchanged by this review.
+
+Regression evidence:
+
+- VM: same-release reinstall with network unavailable performs no fetch/write/delete
+  and preserves the original Cache/Response objects and successful active navigation.
+- VM: terminate simulation after the first verified entry, without rejection or
+  cleanup; incomplete candidate navigation/activation fail, old shell stays usable,
+  fresh same-release installer resumes the remaining eight assets.
+- VM: incomplete activation, failed client claim, bad bytes, 404, redirect, offline
+  fetch and quota/write failure preserve the previous usable shell. Successful
+  activation still removes only old spike caches; root/sibling isolation, complete
+  integrity and API non-interception regressions remain covered.
+- Desktop Chromium: a comment-only loopback worker fixture forces actual native
+  installation with the same RELEASE manifest while all static asset responses are
+  configured to fail. Installer reaches `installed`/waiting with zero asset requests;
+  both waiting status and active shell are healthy. A different release fixture then
+  fails/reaches `redundant`, retaining the original cache and working navigation.
+  Test-only variants do not change the generated artifact or live emulator.
+- Negative control: in a disposable generated artifact only, restored the former
+  staged install handler; the new same-release offline regression failed with
+  `Offline` as expected. The hardened worker passes the same regression.
+
+Final rerun results (existing Node 22.20.0, no new dependencies):
+
+| Command/check | Actual result |
+|---|---|
+| `npm test` | PASS |
+| `npm run test:library` | PASS, existing offline crypto/CLI suite |
+| `python3 -m unittest discover -s tests -v` | PASS, all 33 methods, including expanded lifecycle regression assertions |
+| `npm run test:spike:offline` | PASS, two targeted methods plus worker scenarios |
+| `python3 build_pages.py` and standalone `build.build()` into temporary output | PASS, exact 21 combined / 11 root files |
+| `npm run test:spike:browser` | PASS, expanded native lifecycle regression plus all original offline/browser checks |
+| `npm run test:browser` | PASS, original root PWA browser suite |
+| `python3 scripts/audit_public.py` | PASS, exact inventory and staged/worktree checks |
+| `node --check https_spike/ui/sw.js`, `node --check scripts/https-spike-offline-browser.cjs` | PASS |
+| Original root baseline vs standalone vs combined raw bytes | PASS, all 11 files including build-info; aggregate SHA-256 unchanged: `d683feca18632334a2d9098be778fb04cc0cf65b9d54a6d90a8afd69361d59be` |
+| Final staged/working diff and whitespace checks | PASS; all changes staged, no unstaged edits |
+
+The same loopback/subprocess sandbox exceptions as in the previous validation were
+used for host/Chromium tests; no live infrastructure operation. Incomplete cache
+storage can survive failed attempts until retry or later successful activation
+cleanup and may consume quota. Browser-driven origin eviction, actual OS/process
+termination and mobile cold start are not proved by VM suspension or desktop tests.
+Safari tab, iOS Home Screen, Android Chrome and Android installed PWA physical rows
+remain NOT RUN. Secure enrollment, offline recovery and production integration
+remain NO-GO. No commit, push, merge or deployment was performed.

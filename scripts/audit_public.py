@@ -8,7 +8,8 @@ ROOT = Path(__file__).resolve().parents[1]
 PUBLIC_FILES = {
     '.gitignore', '.nvmrc', '.github/workflows/pages.yml', 'README.md', 'NOTICE.md',
     'SECURITY.md', 'VALIDATION.md', 'OFFLINE_RECOVERY.md', 'PUBLIC_FILES.txt', 'build.py', 'package.json',
-    'build_pages.py', 'PAGES_FILES.txt', 'tests/test_pages.py',
+    'build_pages.py', 'PAGES_FILES.txt', 'tests/test_pages.py', 'tests/test_https_spike_offline.py',
+    'scripts/https-spike-offline-test.cjs', 'scripts/https-spike-offline-browser.cjs',
     'package-lock.json', 'publisher.cjs', 'library-test.js', 'tests.js',
     'scripts/catalogs.py', 'scripts/audit_public.py', 'scripts/browser-test.cjs',
     'tests/test_esp32.py', 'tests/test_https_spike.py', 'scripts/https-spike-test.cjs',

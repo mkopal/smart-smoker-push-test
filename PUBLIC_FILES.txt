@@ -45,10 +45,13 @@ publisher.cjs
 scripts/audit_public.py
 scripts/browser-test.cjs
 scripts/catalogs.py
+scripts/https-spike-offline-browser.cjs
+scripts/https-spike-offline-test.cjs
 scripts/https-spike-test.cjs
 tests.js
 tests/test_esp32.py
 tests/test_https_spike.py
+tests/test_https_spike_offline.py
 tests/test_pages.py
 tests/test_site.py
 web/app.js

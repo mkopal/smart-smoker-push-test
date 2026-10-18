@@ -280,3 +280,10 @@ Run `npm run test:spike` for deterministic and loopback tests; the full host sui
 also includes these tests. Public hosting, trusted certificates, DNS and physical
 phone validation require the separately authorized owner-run Phase B/C procedure.
 **HARDWARE_VALIDATION_PENDING; NO-GO for real-device HTTPS integration and P0 closure.**
+
+
+The isolated HTTPS spike now includes a versioned static-only offline shell;
+see its [contract, four-context manual test matrix and remaining gates](https_spike/README.md#offline-shell-prerequisite--2026-10-19).
+The root Web Push PWA is unchanged. This local implementation is not deployed;
+real iPhone/Android cold-start validation is still required. Secure enrollment and
+production integration remain **NO-GO**.

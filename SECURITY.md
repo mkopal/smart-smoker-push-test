@@ -35,7 +35,7 @@ file. Do not claim full isolation from other projects on the same github.io orig
 localStorage is origin-wide, and a malicious same-origin project can be a threat.
 Use a dedicated origin for any later production design.
 
-The worker has no fetch handler or offline app-shell cache. Enrollment/reloading needs
+The root Web Push worker has no fetch handler or offline app-shell cache. Enrollment/reloading needs
 network access. Browser-managed worker installation is distinct from offline page
 availability. The OS/browser can wake the worker for visible push without an open
 document; actual locked-phone delivery, sound and power/Focus behavior require real
@@ -95,8 +95,10 @@ pairing backend. Their ownership, recurring cost and lifetime support must be ex
 | Proposed but unverified | All lifecycle/migration behavior below | No implementation or device result may be inferred |
 | Known blocked path | Ordinary HTTPS management with only an expired leaf; combined Wi-Fi loss prevents autonomous renewal | No safe recovery is supplied by a stored application key, AP password or simulated trust state |
 
-The **current existing PWA cannot perform this complete flow as shipped**: neither
-worker supplies an offline app shell, and no real owner/Wi-Fi API exists. A future
+The **current existing PWA cannot perform this complete flow as shipped**: the root
+worker supplies no offline app shell, and no real owner/Wi-Fi API exists. The isolated
+HTTPS spike now has a static-only shell as described below; mobile acceptance remains
+unverified. A future
 extension of the same product app, with a reviewed offline release/cache strategy,
 is a prerequisite; a second provisioning portal/install would not satisfy the
 requirement. No frontend, simulator, catalog or hosting changes are made here.
@@ -454,3 +456,51 @@ iPhone and Android. It isolates the first unresolved common-platform requirement
 without an embedded implementation or large simulator. Its success would justify
 further lifecycle experiments, not close shelf-expiry/combined-failure recovery.
 No approach currently proves the complete mandatory product contract.
+
+
+## HTTPS spike offline static shell — 2026-10-19
+
+Scope is only the spike worker directory, normally
+`/smart-smoker-push-test/https-spike/`. Root `web/`, root builder, manifest, CSP,
+worker and subscription lifecycle remain unchanged. The exact HTTPS device origin
+and strict CSP remain unchanged. Path scopes do not isolate malicious same-origin
+scripts or browser origin storage; this remains a lab origin, not production trust.
+
+The [offline-shell contract and phone matrix](https_spike/README.md#offline-shell-prerequisite--2026-10-19)
+list all nine precached static assets and the browser-installed tenth worker file.
+An explicit `v1-<content SHA-256>` release, per-file hashes, complete-install gate,
+normal waiting lifecycle and activation cleanup prevent partial or mixed cache
+fallback. All cached responses are validated before shell service; incomplete,
+corrupt, removed or known obsolete caches fail with a network error. A failed new
+candidate leaves a complete previous active release available. Offline discovery
+of newer/revoked releases is impossible; no absolute freshness or permanent browser
+storage guarantee is claimed. Cache eviction requires online reinstall/repair.
+
+Only the exact static GET allowlist is intercepted. Device HTTPS GET/POST/OPTIONS,
+API-like paths, foreign origins, unknown paths, queries and mutations are untouched;
+no runtime cache, request queue, sync, replay or synthetic API response exists.
+Challenges, credentials, tokens, subscriptions, Wi-Fi passwords and owner state are
+never persisted by the worker. `config.js` contains only public fixed configuration;
+the public synthetic fixture token in app source is not an owner credential.
+Only the pre-existing language preference persists as application state.
+
+Offline-ready text means a complete matching static shell, never successful device
+communication. The UI gates Run on a matching controlling spike worker and resets
+session results on page restoration; network failures retain the existing failure
+path. Desktop/VM tests cannot qualify mobile cold launch, storage persistence,
+protected SoftAP/local DNS, public-CA negatives, secure ownership or recovery.
+Secure enrollment, production integration and combined expired-leaf/no-Wi-Fi
+recovery remain **NO-GO**. No firmware, network, DNS, TLS, running emulator or
+hosted deployment is changed by this work.
+
+
+Lifecycle hardening: the installer never deletes release caches, on entry or on
+failure. It validates/reuses each same-release entry and fetches only missing or
+invalid entries; a healthy cache is neither rewritten nor dependent on a network
+retry. An interrupted candidate can retain partial verified static data, but cannot
+serve anything until the complete exact release validates. Activation validates the
+replacement and claims clients before old-cache cleanup; failures before cleanup
+preserve the previous cache data. This does not guarantee browser registration
+rollback after an activation error. Partial failed caches may consume quota until
+a successful activation or explicit spike-only cleanup; browser eviction remains
+an external risk. API interception and the static allowlist are unchanged.

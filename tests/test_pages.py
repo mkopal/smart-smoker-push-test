@@ -64,12 +64,13 @@ class PagesTests(unittest.TestCase):
                 self.assertEqual(manifest[key], './')
                 self.assertEqual(urljoin(BASE + subpath, manifest[key]), BASE + subpath)
             source = ROOT / ('https_spike/ui' if subpath else 'web')
-            for name in ('app.js', 'sw.js', 'manifest.webmanifest'):
+            for name in (('app.js', 'manifest.webmanifest') if subpath else ('app.js', 'sw.js', 'manifest.webmanifest')):
                 self.assertEqual((app / name).read_bytes(), (source / name).read_bytes())
             self.assertIn("register('./sw.js'", (app / 'app.js').read_text())
-            self.assertNotIn("addEventListener('fetch'", (app / 'sw.js').read_text())
-        self.assertIn("{ scope: './' }", (self.output / 'https-spike/app.js').read_text())
-        self.assertEqual((self.output / 'https-spike/config.js').read_text(),
+            if not subpath:
+                self.assertNotIn("addEventListener('fetch'", (app / 'sw.js').read_text())
+        self.assertIn("{ scope: './', updateViaCache: 'none' }", (self.output / 'https-spike/app.js').read_text())
+        self.assertEqual((self.output / 'https-spike/config.js').read_text().splitlines()[0] + '\n',
                          'self.SPIKE_ORIGIN = "' + DEVICE + '";\n')
 
     def test_missing_extra_and_redirected_entries_fail_closed(self):
