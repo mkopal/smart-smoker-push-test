@@ -240,3 +240,13 @@ with ESP-IDF 5.5.5 and its mbedTLS primitives. See its [resource report and gate
 Status: HARDWARE_VALIDATION_PENDING; conditional GO for a separately authorized
 bench trial, NO-GO for production. This does not change the enrollment PWA, Linux
 publisher or deployed Pages artifact. No device operation or live send was performed.
+
+## P0 isolated local HTTPS transport spike
+
+The [Linux HTTPS emulator and iPhone runbook](https_spike/README.md) add a synthetic,
+versioned enrollment transport probe and a separately built EN/CS PWA interface.
+The existing Pages artifact, push enrollment UI and production firmware stay unchanged.
+Run `npm run test:spike` for deterministic and loopback tests; the full host suite
+also includes these tests. Public hosting, trusted certificates, DNS and physical
+phone validation require the separately authorized owner-run Phase B/C procedure.
+**HARDWARE_VALIDATION_PENDING; NO-GO for real-device HTTPS integration and P0 closure.**

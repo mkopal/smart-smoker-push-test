@@ -8,7 +8,8 @@
     "test:library": "node library-test.js",
     "build": "python3 build.py",
     "check:public": "python3 scripts/audit_public.py",
-    "test:browser": "node scripts/browser-test.cjs"
+    "test:browser": "node scripts/browser-test.cjs",
+    "test:spike": "python3 -m unittest discover -s tests -p test_https_spike.py -v"
   },
   "engines": {
     "node": ">=22"

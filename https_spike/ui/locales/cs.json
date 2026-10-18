@@ -1,0 +1,18 @@
+{
+  "app": {
+    "title": "Smart Smoker – test přenosu HTTPS",
+    "instructions": "Pouze syntetická data. Test neprokazuje vlastnictví a nezapíná oznámení. Používejte pouze schválený emulátor v místní síti.",
+    "language": "Jazyk",
+    "endpoint": "Pevně určený testovací server:",
+    "standalone": "Zjištěn režim plochy. Model iPhonu a verzi iOS zaznamenejte samostatně.",
+    "tab": "Zjištěna karta prohlížeče. Toto není důkaz testu aplikace z plochy.",
+    "run": "Spustit syntetické testy HTTPS"
+  },
+  "status": {
+    "ready": "Připraveno. Zatím nebyl odeslán žádný požadavek.",
+    "running": "Ověřuji autorizaci, chybný vstup, úspěch a opakování požadavku…",
+    "passed": "Testy v této relaci prošly. Před přijetím výsledku zaznamenejte zařízení, prohlížeč, síť a certifikát.",
+    "failed": "Testy selhaly nebo byly přerušeny. Ověřte důvěryhodné TLS, DNS, CORS, oprávnění a síť. Opakujte ručně; bez nezabezpečené náhrady.",
+    "unavailable": "Zabezpečený kontext nebo service worker nejsou dostupné. Neobcházejte varování TLS."
+  }
+}

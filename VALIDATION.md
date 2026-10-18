@@ -272,3 +272,56 @@ existing Pages application enabled. Delivery checks for this documentation-only 
 - NOT RUN: new application tests, browser/phone sends or deployment; runtime code,
   workflow and deployed PWA remain unchanged. Main Smart Smoker's separate mandatory
   `task test` gate passed all 90 methods; it is not a new physical phone test.
+
+## P0 local HTTPS emulator — 2026-10-18
+
+**HARDWARE_VALIDATION_PENDING. NO-GO for advancing to real-device HTTPS integration;
+P0 and production integration remain NO-GO.** The owner has not run or confirmed
+any physical iPhone row. This implementation provides transport instrumentation
+and an owner-run procedure, not a validated enrollment security architecture.
+
+Baseline: clean `esp32-direct-web-push-poc` at `0410edc`, matching the locally
+available remote-tracking head; no fetch/push/deployment was performed. Main
+architecture reviewed at `745bd00`: ADR-008, active P0 enrollment design, PLAN,
+VALIDATION, project skill, localization and security constraints. Main repository
+and all ESP32/ESPHome/HA/OTA files remain unchanged.
+
+Implemented: isolated Python standard-library HTTPS API with exact Host/Origin
+allowlists, strict CORS, bounded bodies/headers/state/requests/timeouts, fixed
+synthetic schema and one-use monotonic challenges; independent EN/CS PWA artifact
+with fixed-endpoint CSP and no Push API, arbitrary data input or persistence other
+than language. Public inventory audit covers new source/catalogs. Normal `dist`
+remains the same eleven-file production-facing artifact. The spike's ten files
+are built separately under ignored `local/https-spike/site` and were not published.
+
+| Command / check | Actual result |
+|---|---|
+| `npm test` | PASS: existing offline publisher/enrollment/localization/worker regressions |
+| `npm run test:library` | PASS after sandbox retry: existing offline real web-push encryption/authentication/signature and private CLI tests; no outbound send |
+| `python3 -m unittest discover -s tests -v` | PASS: 25 methods, including 14 new spike methods and deterministic browser behavior invoked by unittest |
+| New actual loopback TLS tests | PASS: valid synthetic request, allowed preflight, no-token/wrong-token authorization, replay, expired/unknown session and restart semantics, malformed/duplicate/extra data, rejected real-data-shaped fields, wrong media type, invalid/missing/foreign Origin, invalid Host, duplicate framing, body/header/session/rate bounds, incomplete-body timeout without mutation and subsequent recovery |
+| New TLS negatives | PASS on Linux: isolated untrusted cert, wrong SAN hostname and expired temporary fixture fail certificate verification. These temporary self-signed fixtures are not public-CA/iPhone evidence |
+| `node scripts/https-spike-test.cjs` | PASS: mocked browser authorized/unauthorized/malformed/replay sequence, EN/CS selection/persistence, omitted credentials/no-store/redirect rejection, double-tap exclusion, failure at each request and insecure-context refusal. This is not real Safari execution |
+| `python3 build.py` | PASS: existing eleven-file Pages artifact; its CSP, app and worker unchanged |
+| `python3 https_spike/build.py --device-origin https://device.example.test:8443` | PASS: ten-file isolated artifact, exact endpoint CSP, discovered EN/CS and JS syntax. Reserved hostname is synthetic and is not a deployed endpoint |
+| `python3 scripts/audit_public.py` | PASS after staging exact reviewed inventory: staged/worktree secret heuristics and production artifact boundary; no private local files scanned |
+| `git diff --check` and `git diff --cached --check` | PASS: final whitespace/scope and staged diff review, no secrets identified |
+| Production firmware build / physical ESP32 / HA / OTA / outbound Web Push | NOT RUN: unchanged and outside scope |
+| Public CA issuance / DNS/router/firewall / LAN listener / public static hosting | NOT RUN: separately authorized owner operations only |
+| Actual Safari / installed iPhone / trusted-public-CA / Wi-Fi/cellular / permission / first-use / certificate negative acceptance | NOT RUN: use the [Phase B/C runbook and result template](https_spike/README.md) with the owner |
+
+Environment: Python 3.10.6, OpenSSL 3.0.2 and available Node 22.20.0 (satisfies package Node >=22;
+repository `.nvmrc` pins 22.21.0, not installed here). No dependency installed.
+Initial loopback test was blocked by sandbox socket policy; authorized execution
+outside the sandbox passed, listening only on loopback and cleaning temporary
+certificates/server afterward. Existing library tests initially hit sandbox
+`spawnSync EPERM`; the authorized offline retry passed. Initial browser test used
+the shell's old Node 14 and failed on modern built-ins; rerun with Node 22.20.0
+passed. These are tooling constraints, not iOS observations.
+
+No genuine ownership proof, manufacturing identity, durable owner/recovery state,
+autonomous DNS-01 renewal, expired-leaf/no-Wi-Fi recovery, offline AP setup or
+ESP32 concurrent resource behavior is established. A trusted installed-iPhone
+transport PASS is still required before reviewing advancement; it never alone
+closes P0. Cleanup instructions preserve the deployed push experiment and leave
+certificate/DNS/account removal to the authorized owner.

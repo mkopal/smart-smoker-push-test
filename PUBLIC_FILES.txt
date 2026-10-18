@@ -25,6 +25,16 @@ esp32/tests/driver.cpp
 esp32/tests/serial.cpp
 esp32/tests/stubs/sdk.h
 esp32/tests/test.cjs
+https_spike/README.md
+https_spike/build.py
+https_spike/server.py
+https_spike/ui/app.js
+https_spike/ui/index.html
+https_spike/ui/locales/cs.json
+https_spike/ui/locales/en.json
+https_spike/ui/manifest.webmanifest
+https_spike/ui/style.css
+https_spike/ui/sw.js
 library-test.js
 package-lock.json
 package.json
@@ -32,8 +42,10 @@ publisher.cjs
 scripts/audit_public.py
 scripts/browser-test.cjs
 scripts/catalogs.py
+scripts/https-spike-test.cjs
 tests.js
 tests/test_esp32.py
+tests/test_https_spike.py
 tests/test_site.py
 web/app.js
 web/i18n.js

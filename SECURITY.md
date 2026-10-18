@@ -49,3 +49,14 @@ detect its own host's outage or guarantee message delivery.
 
 Do not report vulnerabilities with keys/subscriptions in public issues. Contact the
 repository owner privately without including sensitive values in the first message.
+
+## Isolated HTTPS transport emulator
+
+The optional `https_spike/` tool serves only a fixed synthetic API on an explicitly
+selected loopback/LAN address. Its public fixture token is not ownership proof.
+It never accepts real subscriptions/credentials or sends push. A separate ignored
+static artifact has exact-device CSP; the normal Pages build is unchanged. Keep TLS
+material and ACME data in ignored `local/https-spike/`; no issuance, LAN listener,
+DNS/router/firewall changes or public hosting are authorized by building/testing.
+The [runbook](https_spike/README.md) documents limits, CA trust, physical acceptance,
+cleanup and why host PASS cannot close P0 or authorize ESPHome integration.

@@ -10,7 +10,10 @@ PUBLIC_FILES = {
     'SECURITY.md', 'VALIDATION.md', 'PUBLIC_FILES.txt', 'build.py', 'package.json',
     'package-lock.json', 'publisher.cjs', 'library-test.js', 'tests.js',
     'scripts/catalogs.py', 'scripts/audit_public.py', 'scripts/browser-test.cjs',
-    'tests/test_esp32.py',
+    'tests/test_esp32.py', 'tests/test_https_spike.py', 'scripts/https-spike-test.cjs',
+    'https_spike/server.py', 'https_spike/build.py', 'https_spike/README.md',
+    'https_spike/ui/index.html', 'https_spike/ui/app.js', 'https_spike/ui/style.css',
+    'https_spike/ui/manifest.webmanifest', 'https_spike/ui/sw.js',
     'esp32/CMakeLists.txt', 'esp32/README.md', 'esp32/FEASIBILITY.md',
     'esp32/build.py', 'esp32/provision.cjs', 'esp32/sdkconfig.defaults',
     'esp32/partitions.csv', 'esp32/main/CMakeLists.txt',
@@ -28,6 +31,7 @@ SENSITIVE = re.compile(rb'-----BEGIN [A-Z ]*PRIVATE KEY-----|gh[pousr]_[A-Za-z0-
 
 def audit(root=ROOT):
     expected = PUBLIC_FILES | {p.relative_to(root).as_posix() for p in (root / 'web/locales').glob('*.json')}
+    expected |= {p.relative_to(root).as_posix() for p in (root / 'https_spike/ui/locales').glob('*.json')}
     manifest = (root / 'PUBLIC_FILES.txt').read_text().splitlines()
     if manifest != sorted(expected):
         raise ValueError('Public file inventory mismatch')
