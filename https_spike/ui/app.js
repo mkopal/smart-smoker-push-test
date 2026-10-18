@@ -14,12 +14,14 @@
     language.appendChild(option);
   }
   let status = 'ready', controller;
+  let shellStatus = 'caching', shellReady = false;
   const standalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
   function render() {
     document.documentElement.lang = i18n.locale;
     document.title = i18n.t('app.title');
     document.querySelectorAll('[data-i18n]').forEach(node => { node.textContent = i18n.t(node.dataset.i18n); });
     language.value = i18n.locale;
+    element('offline').textContent = i18n.t('offline.' + shellStatus);
     element('status').textContent = i18n.t('status.' + status);
     element('mode').textContent = i18n.t(standalone ? 'app.standalone' : 'app.tab');
   }
@@ -35,7 +37,7 @@
     return { status: response.status, body };
   }
   element('run').addEventListener('click', async () => {
-    if (controller) return;
+    if (controller || !shellReady) return;
     controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 10000);
     element('run').disabled = true;
@@ -61,18 +63,63 @@
       status = 'failed'; // TLS, DNS, CORS and permissions are intentionally not guessed.
     } finally {
       clearTimeout(timer); controller = null;
-      element('run').disabled = !isSecureContext;
+      element('run').disabled = !isSecureContext || !shellReady || !!controller;
       render();
     }
   });
   addEventListener('pagehide', () => { if (controller) controller.abort(); });
   document.addEventListener('visibilitychange', () => { if (document.hidden && controller) controller.abort(); });
   if (!isSecureContext) status = 'unavailable';
-  element('run').disabled = !isSecureContext;
-  if (isSecureContext && 'serviceWorker' in navigator) {
-    navigator.serviceWorker.register('./sw.js', { scope: './' }).catch(() => {
-      status = 'unavailable'; element('run').disabled = true; render();
-    });
+  element('run').disabled = !isSecureContext || !shellReady || !!controller;
+  async function checkShell() {
+    shellReady = false;
+    shellStatus = 'caching';
+    element('run').disabled = true;
+    try {
+      const worker = navigator.serviceWorker.controller;
+      if (!worker || worker.scriptURL !== new URL('./sw.js', location.href).href) {
+        shellStatus = 'reload';
+      } else {
+        const result = await new Promise((resolve, reject) => {
+          const channel = new MessageChannel();
+          const timeout = setTimeout(() => { channel.port1.close(); reject(new Error('Worker timeout')); }, 5000);
+          channel.port1.onmessage = event => {
+            clearTimeout(timeout); channel.port1.close(); resolve(event.data);
+          };
+          worker.postMessage('offline-shell-status', [channel.port2]);
+        });
+        shellReady = navigator.serviceWorker.controller === worker
+          && result.ready === true && result.version === SPIKE_SHELL_VERSION;
+        shellStatus = shellReady ? 'ready' : 'unavailable';
+      }
+    } catch (_) { shellStatus = 'unavailable'; }
+    element('run').disabled = !isSecureContext || !shellReady || !!controller;
+    render();
   }
+  addEventListener('pageshow', () => {
+    status = isSecureContext ? 'ready' : 'unavailable';
+    if (isSecureContext && 'serviceWorker' in navigator) checkShell();
+    render();
+  });
+  if (isSecureContext && 'serviceWorker' in navigator) {
+    navigator.serviceWorker.addEventListener('controllerchange', checkShell);
+    navigator.serviceWorker.register('./sw.js', { scope: './', updateViaCache: 'none' })
+      .then(async registration => {
+        // Offline update failures must not hide a healthy already installed release.
+        if (registration.active) await checkShell();
+        else {
+          const worker = registration.installing || registration.waiting;
+          if (worker) worker.addEventListener('statechange', () => {
+            if (worker.state === 'redundant') {
+              shellStatus = 'unavailable'; render();
+            }
+          });
+        }
+      }).catch(() => {
+        if (navigator.serviceWorker.controller) checkShell();
+        else { shellStatus = 'unavailable'; element('run').disabled = true; render(); }
+      });
+    if (navigator.serviceWorker.controller) checkShell();
+  } else shellStatus = 'unavailable';
   render();
 })();

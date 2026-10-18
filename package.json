@@ -10,7 +10,9 @@
     "build:pages": "python3 build_pages.py",
     "check:public": "python3 scripts/audit_public.py",
     "test:browser": "node scripts/browser-test.cjs",
-    "test:spike": "python3 -m unittest discover -s tests -p test_https_spike.py -v"
+    "test:spike:offline": "python3 -m unittest discover -s tests -p test_https_spike_offline.py -v",
+    "test:spike:browser": "node scripts/https-spike-offline-browser.cjs",
+    "test:spike": "python3 -m unittest discover -s tests -p 'test_https_spike*.py' -v"
   },
   "engines": {
     "node": ">=22"

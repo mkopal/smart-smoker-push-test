@@ -210,7 +210,7 @@ class BuildTests(unittest.TestCase):
             for name in FILES:
                 if name.endswith('.js'):
                     subprocess.run(['node', '--check', str(target / name)], check=True, capture_output=True)
-            self.assertNotIn("addEventListener('fetch'", (target / 'sw.js').read_text())
+            self.assertIn("addEventListener('fetch'", (target / 'sw.js').read_text())
             (target / 'unexpected.txt').write_text('synthetic')
             with self.assertRaises(ValueError):
                 build_spike('https://' + HOST, target)

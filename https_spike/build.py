@@ -1,5 +1,6 @@
 """Build a separate, owner-deployable probe artifact; never modify production dist."""
 import argparse
+import hashlib
 import json
 from pathlib import Path
 import re
@@ -13,6 +14,28 @@ from scripts.catalogs import messages
 
 FILES = {'index.html', 'app.js', 'style.css', 'i18n.js', 'catalogs.js', 'config.js',
          'manifest.webmanifest', 'sw.js', 'icon-192.png', 'icon-512.png'}
+
+
+def validate_shell(output):
+    source = ROOT / 'https_spike/ui/sw.js'
+    worker = (output / 'sw.js').read_text()
+    match = re.search(r'const RELEASE = (.*);', worker)
+    if not match:
+        raise ValueError('Missing offline release')
+    release = json.loads(match[1])
+    names = sorted(FILES - {'sw.js'})
+    expected = [{'path': name, 'sha256': hashlib.sha256((output / name).read_bytes()).hexdigest()}
+                for name in names]
+    config = (output / 'config.js').read_text()
+    identity = hashlib.sha256(source.read_bytes())
+    for name in names:
+        content = config.splitlines(keepends=True)[0].encode() if name == 'config.js' else (output / name).read_bytes()
+        identity.update(name.encode() + b'\0' + content)
+    version = 'v1-' + identity.hexdigest()
+    if (release != {'version': version, 'assets': expected}
+            or worker != source.read_text().replace('null /* OFFLINE_RELEASE */', json.dumps(release, sort_keys=True))
+            or config.splitlines()[1:] != ['self.SPIKE_SHELL_VERSION = ' + json.dumps(version) + ';']):
+        raise ValueError('Incomplete or obsolete offline release')
 
 
 def build(device_origin, output=None):
@@ -29,7 +52,7 @@ def build(device_origin, output=None):
     for key in re.findall(r'data-i18n="([^"]+)"', template):
         if key not in messages(resources['en']):
             raise ValueError('Missing translation')
-    for name in ('app.js', 'style.css', 'manifest.webmanifest', 'sw.js'):
+    for name in ('app.js', 'style.css', 'manifest.webmanifest'):
         (output / name).write_bytes((source / name).read_bytes())
     (output / 'index.html').write_text(template.replace('DEVICE_ORIGIN', device_origin))
     (output / 'i18n.js').write_bytes((ROOT / 'web/i18n.js').read_bytes())
@@ -37,6 +60,21 @@ def build(device_origin, output=None):
     (output / 'config.js').write_text('self.SPIKE_ORIGIN = ' + json.dumps(device_origin) + ';\n')
     for size in (192, 512):
         (output / f'icon-{size}.png').write_bytes(icon(size))
+    # Explicit schema version plus content identity: every changed asset changes release.
+    shell_files = sorted(FILES - {'sw.js'})
+    identity = hashlib.sha256()
+    identity.update((source / 'sw.js').read_bytes())
+    for name in shell_files:
+        identity.update(name.encode() + b'\0' + (output / name).read_bytes())
+    version = 'v1-' + identity.hexdigest()
+    with (output / 'config.js').open('a') as config:
+        config.write('self.SPIKE_SHELL_VERSION = ' + json.dumps(version) + ';\n')
+    release = {'version': version, 'assets': [
+        {'path': name, 'sha256': hashlib.sha256((output / name).read_bytes()).hexdigest()}
+        for name in shell_files]}
+    worker = (source / 'sw.js').read_text().replace('null /* OFFLINE_RELEASE */', json.dumps(release, sort_keys=True))
+    (output / 'sw.js').write_text(worker)
+    validate_shell(output)
     return output
 
 

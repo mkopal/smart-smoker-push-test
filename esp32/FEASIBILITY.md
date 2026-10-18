@@ -7,6 +7,49 @@ measurement record; the main project owns the full-flash restoration record.
 **Isolated direct Web Push PoC: SUCCESS (one end-to-end test).
 Production ESPHome integration: NO-GO pending engineering and validation.**
 
+## HTTPS enrollment coexistence assessment — 2026-10-18
+
+The owner separately confirms synthetic Linux LAN HTTPS with iPhone 14/iOS 27.0.1
+Safari and installed PWA; [qualified record](../VALIDATION.md#owner-observed-iphone-https-transport--2026-10-18).
+That experiment ran on Linux, not ESP32, and used a public fixed token. It supplies
+no server memory, ownership or simultaneous ESPHome/push evidence. The single-send
+measurements below remain authoritative only for the isolated publisher.
+
+Conditional implementation: thin ESPHome adapter plus supported IDF API-only HTTPS
+server, independent of existing read-only HTTP UI. ESPHome alone owns Wi-Fi, API,
+OTA and preferences; no second app_main/network stack or generated framework patch.
+One admitted TLS handshake/session; serialize enrollment, ACME/DNS renewal, outbound
+push and OTA heavy work with explicit drain/cancel. API/HA and monitoring stay active.
+Server support in IDF alone does not prove supported integration or fit on WROOM-32D /
+D0WD-V3 rev 3.1, 4 MB/no PSRAM. Do not sum binaries or subtract isolated heap costs.
+
+| Coexisting feature | Required feasibility experiment, not current evidence |
+|---|---|
+| Encrypted API / optional HA / two HTTP-SSE clients / sensors | Measure baseline and combined workloads with HA present/absent, AP/LAN, malformed handshakes and future sensor cadence; no loop starvation, watchdog reset or entity regression |
+| OTA | Admission interlock before OTA authentication allocations, drain TLS; later separately authorized authenticated update/recovery. Existing OTA/API credentials must never enter PWA or claim store |
+| TLS server + client + renewal | One expensive job at a time, bounded socket/stack/parser/cert buffers; measure peaks at handshake, certificate parsing/swap, push and cleanup, including largest internal block/fragmentation |
+| Flash / identity / rotation | Preserve real partitions and both OTA slots; independently generated TLS, signing, ACME, scoped DNS, VAPID and claim/recovery authority. A/B atomic store with integrity/ambiguity handling, claim consumption, revocation, key migration and no rollback; no fleet keys |
+| Protected key storage | Qualify secure boot/flash/NVS encryption and recovery on spare hardware before production claims; no secure element/eFuse state or extraction protection is assumed |
+
+Use main [provisional integrated budgets and exact experiments](../../smart-smoker/docs/WEB_PUSH_ENROLLMENT.md#integrated-resource-and-security-budgets):
+image <=1,468,006 B in each 1,835,008 B slot (>=20% reserve), >=30 KiB internal
+minimum heap, >=20 KiB largest block, >=2 KiB free stack per added worker, admission
+>=130 KiB free/>=64 KiB largest block, loop work <=5 ms and no diagnostics gap >15 s.
+100 success/failure/renewal cycles plus 24 h soak must recover quiescent heap within
+2 KiB of warm baseline, no monotonic loss or resets; measure CPU separately from
+wall time. These are acceptance floors, not a guarantee they are sufficient.
+
+Account for both <=8 KiB certificate chains, <=2 KiB key encodings, ACME/DNS/claim/
+recovery/VAPID/recipient state within the provisional <=32 KiB logical store plus
+NVS overhead, GC and ESPHome preferences. That budget may fail: do not enlarge it
+silently or truncate chain/keys. Full/corrupt/low-heap/power-cut tests must fail closed.
+Future thermocouples and 48 h history have unmeasured resource costs.
+
+Next is the main offline bootstrap/ownership fault model; no firmware modifications,
+cross-build of a new server, device access, flashing or OTA occurred or are authorized
+here. All hardware concurrency, leak, stack, renewals and secure storage claims remain
+NOT RUN; production integration NO-GO.
+
 ## Successful real-device experiment — 2026-10-16
 
 Evidence supplied by the owner: sanitized instrumented firmware diagnostics and

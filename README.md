@@ -47,6 +47,25 @@ The laptop published the 2026-10-15 owner-observed notification. The isolated
 sound to the locked iPhone on 2026-10-16. The enrollment PWA has no direct connection
 to the smoker; the isolated publisher uses its privately provisioned subscription.
 
+## Independent HTTPS transport experiment
+
+[P0 — Device Provisioning, Configuration & Recovery](SECURITY.md#p0--device-provisioning-configuration--recovery)
+specifies first-owner setup, configuration and transactional Wi-Fi migration,
+cross-platform bootstrap dependencies and minimum real-phone experiments.
+Architecture only; complete enrollment, recovery and production remain NO-GO.
+
+[Offline recovery feasibility assessment](OFFLINE_RECOVERY.md): the combined
+expired-leaf/no-usable-Wi-Fi case is NO-GO for the proposed HTTPS bootstrap.
+No recovery simulator was implemented; a minimal real-iPhone acceptance protocol
+defines the missing evidence and conditional rescue-network experiment.
+
+Owner-observed iPhone 14 / iOS 27.0.1 Safari and Home Screen synthetic LAN HTTPS
+checks passed on 2026-10-18 without custom roots or warning bypass. The root push
+PWA stayed in place; the isolated spike is under `/https-spike/`. This is separate
+from direct ESP32 push and does not establish ownership or ESP32 HTTPS hosting.
+[Qualified evidence](VALIDATION.md#owner-observed-iphone-https-transport--2026-10-18),
+[spike runbook](https_spike/README.md); P0 and production remain NO-GO.
+
 ## Local setup and checks
 
 Requirements: Linux/POSIX file permissions, Git, Node.js 22+ with matching npm,
@@ -261,3 +280,10 @@ Run `npm run test:spike` for deterministic and loopback tests; the full host sui
 also includes these tests. Public hosting, trusted certificates, DNS and physical
 phone validation require the separately authorized owner-run Phase B/C procedure.
 **HARDWARE_VALIDATION_PENDING; NO-GO for real-device HTTPS integration and P0 closure.**
+
+
+The isolated HTTPS spike now includes a versioned static-only offline shell;
+see its [contract, four-context manual test matrix and remaining gates](https_spike/README.md#offline-shell-prerequisite--2026-10-19).
+The root Web Push PWA is unchanged. This local implementation is not deployed;
+real iPhone/Android cold-start validation is still required. Secure enrollment and
+production integration remain **NO-GO**.

@@ -6,7 +6,7 @@ import shutil
 import tempfile
 
 from build import ROOT, SITE_FILES, build as build_root, validate_site
-from https_spike.build import FILES as SPIKE_FILES, build as build_spike
+from https_spike.build import FILES as SPIKE_FILES, build as build_spike, validate_shell
 
 DEVICE_ORIGIN = 'https://smoker-test.navodio.cz:8443'
 APP_ORIGIN = 'https://mkopal.github.io'
@@ -53,7 +53,9 @@ def validate_pages(output, inventory=ROOT / 'PAGES_FILES.txt'):
         policies = re.findall(r'<meta http-equiv="Content-Security-Policy" content="([^"]+)">', html)
         if policies != [CSP.format(device=device)]:
             raise ValueError('Unexpected PWA CSP')
-    if (output / 'https-spike/config.js').read_text() != 'self.SPIKE_ORIGIN = ' + json.dumps(DEVICE_ORIGIN) + ';\n':
+    validate_shell(output / 'https-spike')
+    config_origin = (output / 'https-spike/config.js').read_text().splitlines()[0]
+    if config_origin != 'self.SPIKE_ORIGIN = ' + json.dumps(DEVICE_ORIGIN) + ';':
         raise ValueError('Unexpected device origin')
 
 
