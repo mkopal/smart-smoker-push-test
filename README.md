@@ -284,6 +284,13 @@ phone validation require the separately authorized owner-run Phase B/C procedure
 
 The isolated HTTPS spike now includes a versioned static-only offline shell;
 see its [contract, four-context manual test matrix and remaining gates](https_spike/README.md#offline-shell-prerequisite--2026-10-19).
-The root Web Push PWA is unchanged. This local implementation is not deployed;
-real iPhone/Android cold-start validation is still required. Secure enrollment and
-production integration remain **NO-GO**.
+The root Web Push PWA is unchanged. The owner reported iPhone offline installed-PWA
+launch **PASS** and post-reboot launch **PASS (single reported run)** on 2026-10-19;
+Safari offline reload **FAIL**, a transient shell mismatch (**investigation pending**)
+and offline API negative test **PASS** are recorded separately in the
+[real-device evidence](VALIDATION.md#owner-observed-iphone-offline-pwa-validation--2026-10-19).
+Android and SoftAP transport remain **NOT RUN**. The physical SoftAP experiment is
+blocked by the lack of a dedicated second AP-capable USB Wi-Fi adapter; existing
+RT5370, Linux bridge, Home Assistant networking and production ESP32 must not be
+repurposed. Full offline bootstrap acceptance stays open; initial provisioning,
+secure enrollment, real ESP32 recovery and production integration remain **NO-GO**.

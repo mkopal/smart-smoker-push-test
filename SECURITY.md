@@ -97,8 +97,8 @@ pairing backend. Their ownership, recurring cost and lifetime support must be ex
 
 The **current existing PWA cannot perform this complete flow as shipped**: the root
 worker supplies no offline app shell, and no real owner/Wi-Fi API exists. The isolated
-HTTPS spike now has a static-only shell as described below; mobile acceptance remains
-unverified. A future
+HTTPS spike now has a static-only shell as described below; full mobile acceptance
+remains open despite the limited owner-observed iPhone offline results. A future
 extension of the same product app, with a reviewed offline release/cache strategy,
 is a prerequisite; a second provisioning portal/install would not satisfy the
 requirement. No frontend, simulator, catalog or hosting changes are made here.
@@ -440,7 +440,7 @@ before any record is shared. Host tests and diagrams never replace these trials.
 |---|---|---|
 | Ordinary iPhone LAN HTTPS transport | Prior qualified PASS, preserved | No widening beyond recorded Linux/phone configuration |
 | Factory identification/possession/first owner | PROPOSED; NO-GO | E1 transport plus actual per-unit provisioning, physical factor and protocol review |
-| Same-PWA AP/offline cross-platform bootstrap | NOT RUN; NO-GO | E1 in all four browser/installed contexts, both locales, current/minimum supported versions |
+| Same-PWA AP/offline cross-platform bootstrap | Limited iPhone shell observations only; isolated AP and Android NOT RUN; NO-GO | E1 in all four browser/installed contexts, both locales, current/minimum supported versions |
 | Transactional Wi-Fi/configuration lifecycle | Specification only; NO-GO | E2 real association, authenticated rediscovery, services, rollback and power-cut trials |
 | Add/revoke/lost phone/transfer/reset | PROPOSED; NO-GO | Atomic authority/storage negatives, real phone persistence and reviewed handoff/reset |
 | Expired identity with working internet route | PROPOSED; NO-GO | Scoped DNS/ACME/time/key lifecycle and atomic renewal proven |
@@ -504,3 +504,22 @@ preserve the previous cache data. This does not guarantee browser registration
 rollback after an activation error. Partial failed caches may consume quota until
 a successful activation or explicit spike-only cleanup; browser eviction remains
 an external risk. API interception and the static allowlist are unchanged.
+
+
+### Owner-observed mobile shell evidence — 2026-10-19
+
+The [real-iPhone offline record](VALIDATION.md#owner-observed-iphone-offline-pwa-validation--2026-10-19)
+reports installed-PWA offline launch PASS, one post-reboot offline launch PASS,
+Safari offline reload FAIL, a transient installed-PWA shell mismatch (investigation
+pending), and offline synthetic API failure without false success (negative-test
+PASS). The online verified message is the application's reported completeness check,
+not durable-storage assurance. Neither the Safari failure nor the transient mismatch
+has an established cause; no worker/cache defect is inferred solely from the UI.
+One post-reboot run does not establish repeated cold-start reliability.
+
+Full offline bootstrap acceptance remains OPEN / NO-GO. Android browser/installed
+PWA and isolated SoftAP transport remain NOT RUN. The owner lacks a dedicated second
+AP-capable USB Wi-Fi adapter; obtain one before the physical AP experiment. Do not
+repurpose the existing RT5370 adapter, Linux bridge, Home Assistant networking or
+production ESP32. Initial provisioning, secure enrollment, real ESP32 recovery and
+production integration remain NO-GO; the combined expiry/Wi-Fi blocker is unchanged.

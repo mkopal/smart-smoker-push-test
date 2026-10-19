@@ -1,5 +1,89 @@
 # Validation evidence
 
+## Owner-observed iPhone offline PWA validation — 2026-10-19
+
+**Installed PWA offline launch observed PASS; Safari offline reload observed FAIL;
+full offline bootstrap acceptance remains OPEN / NO-GO.** These are owner-reported
+real-device observations, not tests repeated or independently instrumented by this
+documentation task. All previous validation history below is preserved.
+
+| Test environment | Owner-reported value |
+|---|---|
+| Device / OS | Apple iPhone 14 / iOS 27.0.1 |
+| Contexts | Safari tab and installed Home Screen PWA |
+| Application | `https://mkopal.github.io/smart-smoker-push-test/https-spike/` |
+| Configured device endpoint | `https://smoker-test.navodio.cz:8443` |
+| Offline arrangement | Airplane Mode enabled; Wi-Fi manually disabled |
+| Restart precaution | Owner reported Wi-Fi became enabled after restarting the iPhone; Wi-Fi was manually disabled again before opening the PWA, while Airplane Mode remained enabled |
+
+| Test | Observed result / exact reported UI |
+|---|---|
+| Online initialization in Safari | **PASS**: `Offline shell verified. Only this static app is cached; device checks still require reachable HTTPS.` |
+| Safari offline reload | **FAIL**: `Safari can't open the page because your iPhone is not connected to the internet.` |
+| Installed Home Screen PWA offline launch | **Observed PASS with transient inconsistency**: opened offline and detected Home Screen mode. One observation showed `Offline shell incomplete or incompatible.`; a subsequent observation showed `Offline shell verified.` |
+| Offline API negative test | **PASS**: pressing `Run synthetic HTTPS checks` displayed `Checks failed or were interrupted. Verify trusted TLS, DNS, CORS, permissions and network. Retry manually; no insecure fallback.` No false success was reported |
+| Installed PWA post-reboot offline launch | **Observed PASS, single reported run** after the Wi-Fi precaution above: `Home Screen mode detected`, `Offline shell verified`, `Ready. No request has been sent` |
+
+The online message confirms the application's reported integrity/completeness
+check at that time; it does not establish long-term offline persistence. The Safari
+failure's root cause was not established; this observation alone does not establish
+a defective service worker or cache. The installed-PWA shell mismatch remains an
+open reliability issue, even though a later observation verified the shell. The
+post-reboot result is one successful owner-observed offline launch, not universal
+reliability or repeated cold-start acceptance. Offline API failure is a negative
+control, not evidence of reachable HTTPS or successful enrollment.
+
+Exact run time, Safari build, deployed source SHA/generated release ID, instrumented
+worker/cache diagnostics, locale coverage and repetition counts beyond the single
+reported post-reboot run were not supplied. No personal device identifiers, serial
+numbers, phone names or private network credentials are recorded.
+
+| Current physical validation status | Decision / remaining evidence |
+|---|---|
+| Installed iOS PWA offline launch | Observed **PASS** in the reported run; transient shell inconsistency retained |
+| Installed PWA post-reboot offline launch | Observed **PASS**, single reported run only |
+| Safari offline reload | Observed **FAIL**, root cause unknown |
+| Transient installed-PWA shell mismatch | **Investigation pending**, unresolved reliability issue |
+| Android browser and installed PWA | **NOT RUN** |
+| SoftAP transport / local DNS / fresh trusted device API on isolated AP | **NOT RUN** |
+| Full offline bootstrap acceptance | **OPEN / NO-GO**; required repeated runs, both locales, remaining mobile/cache/update controls and isolated AP evidence are incomplete |
+| Real ESP32 provisioning and recovery | **NO-GO**; no production readiness established |
+
+The next physical SoftAP experiment is **blocked**: the owner currently has no
+dedicated second AP-capable USB Wi-Fi adapter available. Do not change or repurpose
+the existing RT5370 adapter, Linux bridge, Home Assistant networking or production
+ESP32 to work around that blocker.
+
+Next steps:
+
+1. Preserve this sanitized real-device validation evidence and earlier history.
+2. Investigate the Safari offline reload failure and transient installed-PWA shell
+   mismatch separately if necessary; neither has an established cause.
+3. Obtain a dedicated AP-capable USB Wi-Fi adapter before the isolated SoftAP experiment.
+4. Later test both iOS and Android against a real isolated SoftAP under separately
+   authorized lab conditions, using the [manual matrix](https_spike/README.md#manual-matrix-and-current-observed-results).
+
+This documentation-only update starts from clean `364ae59` on
+`experiment/https-spike-offline-shell`. No implementation, service worker, build
+script, test infrastructure, firmware, DNS, TLS, certificate, Cloudflare, router,
+Home Assistant or live infrastructure change is part of this task. No push, merge
+or deployment. Initial provisioning, secure enrollment and offline recovery remain
+**NO-GO**, independently of static-shell availability.
+
+Local validation for this documentation update (no new phone or live network test):
+
+| Executed command / check | Result |
+|---|---|
+| `python3 -m unittest discover -s tests -p 'test_site.py' -v` | PASS: 7 existing static/inventory/security-boundary tests |
+| `python3 scripts/audit_public.py` | PASS: exact public Git inventory, index/worktree secret heuristics and existing static artifact boundary |
+| `python3 /tmp/check_smoker_offline_docs.py` | PASS: four Markdown-only changed files, 44 local links/anchors, balanced fences, exact owner UI messages, prior validation history and offline recovery assessment unchanged, historical matrix anchor preserved |
+| `git diff --check`, `git diff --cached --check`, final diff review | PASS: documentation only; no implementation, build or test infrastructure changes |
+
+The documentation helper is temporary under `/tmp`, outside the repository. External
+reference URLs were not rechecked; no platform claim or external citation was added.
+Runtime/browser suites were not rerun for this documentation-only change; existing
+host checks do not qualify mobile reliability or close any physical acceptance gate.
+
 ## P0 provisioning, configuration and recovery architecture — 2026-10-18
 
 **Architecture specified; lifecycle/browser/device/security acceptance NO-GO.**

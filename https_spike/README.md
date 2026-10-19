@@ -6,8 +6,12 @@ iOS 27.0.1, Safari tab and installed Home Screen PWA (2026-10-18). See the
 Owner reports normal system trust and the synthetic-check success message in both
 modes, supported by screenshots; this documentation task did not independently
 instrument or repeat those runs. P0, real-device HTTPS integration and production
-remain **NO-GO**: ownership, offline/AP, TLS negatives/recovery, Android, certificate
-lifecycle and ESP32 resources are still unverified. Direct Web Push is a separate PoC.
+remain **NO-GO**: ownership, isolated AP transport, TLS negatives/recovery, Android,
+certificate lifecycle and ESP32 resources are still unverified. Direct Web Push is
+a separate PoC. On 2026-10-19 the owner reported installed-PWA offline launch PASS
+and one post-reboot offline launch PASS, Safari offline reload FAIL, a transient
+shell mismatch and an offline API negative-test PASS. See the
+[offline evidence and open reliability issues](../VALIDATION.md#owner-observed-iphone-offline-pwa-validation--2026-10-19).
 
 This Linux-only test tool follows the main repository's
 [P0 enrollment architecture](../../smart-smoker/docs/WEB_PUSH_ENROLLMENT.md) and
@@ -261,8 +265,10 @@ for TLS, DNS, CORS or permission failures; do not classify the cause from UI alo
 Initially all rows were NOT RUN. The owner has since confirmed ordinary trusted
 transport and the synthetic success message in both modes; see VALIDATION. These
 observations do not complete every row below. TLS negative controls, browser foreign
-Origin, offline/AP, interruption/recovery, prompts and repetitions remain NOT RUN
-unless separately evidenced. Record Safari and Home Screen results separately.
+Origin, isolated AP, interruption/recovery, prompts and repetitions remain NOT RUN
+unless separately evidenced. The limited offline shell observations from 2026-10-19
+are recorded in the manual matrix section below. Record Safari and Home Screen
+results separately.
 
 | Check | Exact procedure / expected result |
 |---|---|
@@ -362,7 +368,9 @@ command is provided, because certificate/account custody may need retention.
 The isolated spike now has an offline static shell. This supersedes earlier
 statements here that its worker has no fetch handler. The root Web Push PWA is
 unchanged and still does not promise offline page navigation. This is local source,
-not a deployed release or evidence of phone acceptance. Secure enrollment,
+not proof of deployed artifact identity or complete phone acceptance. The
+[owner-observed offline results](../VALIDATION.md#owner-observed-iphone-offline-pwa-validation--2026-10-19)
+qualify only the reported 2026-10-19 runs. Secure enrollment,
 production integration and offline recovery remain **NO-GO**.
 
 The artifact still contains exactly ten files. `sw.js` is the browser-installed
@@ -418,7 +426,36 @@ revocation or latest server policy: there is no absolute freshness guarantee. Re
 online periodically and close all spike windows to accept a new release. No expiry
 exception, TLS fallback or secure recovery mechanism is implied by cached UI.
 
-### Manual matrix: all results currently NOT RUN
+<a id="manual-matrix-all-results-currently-not-run"></a>
+
+### Manual matrix and current observed results
+
+The original matrix began with all physical results NOT RUN; that historical status
+is retained in earlier validation entries. Current owner-observed results on iPhone
+14 / iOS 27.0.1 (2026-10-19), with Airplane Mode enabled and Wi-Fi manually disabled:
+
+| Context / control | Current reported result |
+|---|---|
+| Safari online initialization | **PASS**: application's shell integrity/completeness check reported verified; long-term persistence unproven |
+| Safari offline reload | **FAIL**: Safari reported no internet; cause unknown, no service-worker/cache defect inferred |
+| iOS Home Screen PWA offline launch | Observed **PASS with transient inconsistency**: Home Screen mode detected; `Offline shell incomplete or incompatible.` then subsequently `Offline shell verified.`; investigation pending |
+| Installed PWA post-reboot offline launch | Observed **PASS, single reported run**: Home Screen mode detected, shell verified, ready with no request sent. Wi-Fi became enabled after restart according to the owner and was manually disabled again before launch; Airplane Mode remained enabled |
+| Offline synthetic API negative test | **PASS**: manual Run produced the existing checks-failed message, with no false success |
+| Android Chrome / installed PWA | **NOT RUN** / **NOT RUN** |
+| Isolated SoftAP transport | **NOT RUN**; blocked by absence of a dedicated second AP-capable USB Wi-Fi adapter |
+
+See [exact UI messages, evidence limits and next steps](../VALIDATION.md#owner-observed-iphone-offline-pwa-validation--2026-10-19).
+These observations do not complete the procedures below. Repeated cold launches,
+both locales, storage retention/eviction, mobile update and negative cache controls
+remain unqualified. The full offline bootstrap gate remains **OPEN / NO-GO**.
+Real ESP32 provisioning, secure enrollment and recovery remain **NO-GO**.
+
+The owner currently has no dedicated second adapter available. Obtain a dedicated
+AP-capable USB Wi-Fi adapter before the physical isolated SoftAP experiment; do not
+change or repurpose the RT5370 adapter, Linux bridge, Home Assistant networking or
+production ESP32. Preserve the evidence, investigate Safari reload and transient
+PWA mismatch separately if necessary, then later test both iOS and Android on a
+real isolated SoftAP.
 
 Any hosting/publication or network/AP preparation needs separate owner authorization.
 Use the existing spike URL/path and installation identity; never replace the root
@@ -475,9 +512,12 @@ reload, EN/CS, unreachable API, missing cache entry, and root/spike isolation. I
 not test mobile installation, OS process restoration/reboot, Safari/WebKit, Android,
 radio routing, storage retention/eviction timing or real-device cold start.
 
-Current gates: Safari tab **NOT RUN**; iOS Home Screen **NOT RUN**; Android Chrome
-**NOT RUN**; Android installed PWA **NOT RUN**; protected SoftAP/fresh trusted device
-API **NOT RUN**; expired TLS/combined recovery **BLOCKED / NO-GO**. The historical
+Current gates: Safari offline reload **observed FAIL**; iOS Home Screen offline
+launch **observed PASS with transient inconsistency**; post-reboot offline launch
+**observed PASS (single reported run)**; shell mismatch **investigation pending**;
+Android Chrome and installed PWA **NOT RUN**; protected SoftAP/fresh trusted device
+API **NOT RUN** (dedicated adapter unavailable); full offline bootstrap **OPEN /
+NO-GO**; expired TLS/combined recovery **BLOCKED / NO-GO**. The historical
 [offline assessment](../OFFLINE_RECOVERY.md) is retained unchanged; its no-cache
 implementation observations refer to the pre-spike baseline. Its recovery blockers
 are not removed by this static-shell change.
