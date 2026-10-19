@@ -84,6 +84,8 @@ function worker(source = code, scope = base) {
     && options.redirect === 'error'));
   const current = [...stores.keys()].find(key => key.endsWith(release.version));
   assert.equal((await active.status()).ready, true);
+  assert.deepEqual(Object.keys(await active.status()).sort(), ['ready', 'reason', 'version']);
+  assert.equal((await active.status()).reason, 'verified');
   offline = true; requests = [];
   for (const name of expected) {
     const result = await active.request(base + name);
@@ -112,10 +114,21 @@ function worker(source = code, scope = base) {
     if (fault === 'corrupt') data.set(base + 'catalogs.js', new Response('obsolete'));
     if (fault === 'extra') data.set(base + 'private-state', new Response('synthetic'));
     assert.equal((await active.status()).ready, false);
+    assert.equal((await active.status()).version, release.version);
+    assert.equal((await active.status()).reason, fault === 'corrupt' ? 'asset_invalid' : 'entry_count_mismatch');
     assert.equal((await active.request(base, 'GET', 'navigate')).response.type, 'error');
     data.set(base + 'catalogs.js', original);
     data.delete(base + 'private-state');
   }
+  // Same count with an unexpected key still identifies a missing allowlisted asset.
+  data.delete(base + 'catalogs.js'); data.set(base + 'unexpected', new Response('synthetic'));
+  assert.equal((await active.status()).reason, 'asset_missing');
+  data.delete(base + 'unexpected'); data.set(base + 'catalogs.js', original);
+  const originalHas = caches.has;
+  caches.has = async () => { throw new Error('private-marker'); };
+  assert.equal((await active.status()).reason, 'verification_error');
+  assert(!JSON.stringify(await active.status()).includes('private-marker'));
+  caches.has = originalHas;
   // Same-release reinstall must work without network and without touching healthy entries.
   const cacheIdentity = stores.get(current);
   const originalResponses = new Map(cacheIdentity);
@@ -171,6 +184,7 @@ function worker(source = code, scope = base) {
   assert.equal((await upgraded.request(base, 'GET', 'navigate')).response.status, 200);
   assert.equal((await active.request(base, 'GET', 'navigate')).response.type, 'error');
   assert(!stores.has(current), 'Obsolete worker must not recreate its deleted cache');
+  assert.equal((await active.status()).reason, 'cache_missing');
   // Failed replacements may retain partial verified entries, but never serve them.
   for (const fault of ['catalogs.js', '404:config.js', 'redirect:index.html', 'offline', 'quota']) {
     offline = fault === 'offline'; broken = fault; failPut = fault === 'quota';

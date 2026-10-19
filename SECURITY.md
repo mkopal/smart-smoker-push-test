@@ -523,3 +523,17 @@ AP-capable USB Wi-Fi adapter; obtain one before the physical AP experiment. Do n
 repurpose the existing RT5370 adapter, Linux bridge, Home Assistant networking or
 production ESP32. Initial provisioning, secure enrollment, real ESP32 recovery and
 production integration remain NO-GO; the combined expiry/Wi-Fi blocker is unchanged.
+
+### Spike-only offline diagnostic boundary — 2026-10-19
+
+The [diagnostic panel and reproduction protocol](https_spike/README.md#ios-offline-diagnostics-investigation--2026-10-19)
+expose only controller category/lifecycle states, generated static release IDs,
+cache completeness and allowlisted reason codes. Worker errors return no asset
+names/URLs, cache content, arbitrary exception text, device identity, credentials,
+tokens or subscriptions. Diagnostics remain in the current document; no telemetry
+or persistent diagnostic log is added. Recheck only messages the controlling worker;
+no API probe, forced activation, cache deletion or network repair is performed.
+Registration lookup is restricted to the exact spike scope for display/observation.
+The original API non-interception and verified-cache serving boundary is unchanged.
+Root Web Push PWA, production firmware and infrastructure remain unchanged.
+Secure enrollment, offline recovery and production integration remain **NO-GO**.

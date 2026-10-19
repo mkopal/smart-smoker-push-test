@@ -1,5 +1,90 @@
 # Validation evidence
 
+## P0 iOS offline service worker diagnostics — 2026-10-19
+
+**LOCAL DIAGNOSTICS / iOS ROOT CAUSE UNCONFIRMED / NO-GO.** No new physical iPhone
+result is claimed. The owner-observed installed-PWA launch PASS, single post-reboot
+PASS, Safari reload FAIL and transient mismatch below are preserved verbatim.
+See [findings, confidence, diagnostic fields and manual iPhone procedure](https_spike/README.md#ios-offline-diagnostics-investigation--2026-10-19).
+
+Started with clean `experiment/https-spike-offline-shell` at `29660ed`. Read branch
+history, instructions, validation/security/runbook, shell builder/worker/UI and
+existing unit/browser tests. Fetched latest main (`981525e`); sandbox DNS initially
+failed, read-only fetch outside sandbox succeeded. Created local
+`diagnostic/ios-offline-sw` from that main, then cherry-picked the missing committed
+owner evidence as `2bfca3a`. The original evidence branch/commit is retained.
+
+Code review established diagnostic ambiguity and overlapping asynchronous checks:
+several event paths could publish a stale response or timeout over a newer result.
+The old first-install observer also directly marked the shell unavailable when its
+candidate became redundant, without rechecking a possibly healthy controller.
+These are code-level findings, **not attribution of either owner observation**.
+Tests demonstrate the relevant orderings in mocks; Chromium covers native waiting
+and rejected replacement while the active shell stays usable. Separate storage,
+release mismatch, incomplete install, missing controller, eviction and navigation
+handling remain candidates with the confidence limits recorded in the runbook.
+
+Changes (no additional public paths or dependencies):
+
+- `https_spike/ui/app.js`, `index.html`, `style.css`, `locales/en.json`,
+  `locales/cs.json`: localized local-only diagnostic panel/recheck, controller and
+  exact-scope registration lifecycle snapshot, expected/responding worker release,
+  cache state and allowlisted reason; newest check wins, lifecycle failure rechecks
+  active controller, offline register failure may coexist with a verified shell.
+- `https_spike/ui/sw.js`: verification failures report fixed reasons and static
+  release identity; no cache contents/asset names/raw exceptions. Install/activate,
+  fetch routing, API non-interception and integrity gates unchanged.
+- `scripts/https-spike-test.cjs`, `https-spike-offline-test.cjs`,
+  `https-spike-offline-browser.cjs`: lifecycle/ordering/privacy/reason regressions,
+  first-ever offline navigation negative, exact index offline navigation, mismatch
+  versus complete cache, running-page recheck after cache removal then reload fail.
+- `https_spike/README.md`, `SECURITY.md`, `VALIDATION.md`: investigation, safe
+  diagnostic contract, complete reason table, iPhone reproduction and evidence.
+
+Commands run from this repository using:
+
+```bash
+export PATH="/home/mkopal/.nvm/versions/node/v22.20.0/bin:$PATH"
+```
+
+| Executed command / check | Actual result |
+|---|---|
+| `npm test` | PASS: root publisher/enrollment/localization/worker regressions |
+| `npm run test:library` | PASS: actual offline crypto/signature/CLI suite; initial sandbox subprocess EPERM, authorized outside-sandbox rerun passed |
+| `python3 -m unittest discover -s tests -v` | PASS: 33 methods, including TLS/ESP32 source boundaries, root preservation and all spike unit/VM regressions; rerun after final implementation adjustments passed |
+| `node scripts/https-spike-test.cjs` | PASS: temporary missing controller and takeover, waiting/failed candidate, stale reply after newer success, timeout, mismatch, sanitized fields, failed registration with healthy shell, original EN/CS and API negatives |
+| `npm run test:spike:offline` | PASS: 2 methods plus worker scenarios; complete/missing/count/asset/integrity/storage-error reasons, no raw error disclosure, existing interrupted/retry/quota/activation/isolation tests |
+| `npm run test:spike:browser` | PASS: desktop Chromium 142.0.7444.175, disposable loopback profile, HTTP cache disabled; native waiting and failed update, diagnostics, first-ever offline failure, verified fresh-document launch/reload/index, EN/CS, mismatch with complete cache, unreachable API, removed asset and unchanged root failure |
+| `npm run test:browser` | PASS: existing root Chromium scope, readiness, CS/mobile/storage boundary and expected offline navigation failure |
+| `python3 build_pages.py` | PASS: 21-file combined artifact (11 root + 10 spike), exact identity/CSP/inventory; no publication |
+| `python3 https_spike/build.py --device-origin https://smoker-test.navodio.cz:8443` | PASS: isolated ten-file local artifact; no listener, API call or publication |
+| Standalone `build.build(output=temporary_path)` and byte comparison | PASS: all 11 root assets equal combined output at same source revision; protected root/build/workflow/package/ESP32/server paths unchanged from `981525e` |
+| `npm run build` against existing combined `dist/` | Refused the extra spike directory as designed by unchanged root-only validator. Standalone build rerun in temporary output passed; an initial helper used the wrong positional argument, corrected to `output=`. Combined artifact rebuilt and audited afterward |
+| `python3 scripts/audit_public.py` | PASS: exact Git inventory, index/worktree secret heuristics and combined static artifact boundary |
+| `node --check` on changed app, worker and three test scripts | PASS |
+| `git diff --check`, `git diff --cached --check`, final diff/scope and historical-evidence review | PASS |
+
+Initial Chromium sandbox run failed to bind loopback (EPERM); authorized local
+outside-sandbox execution passed. Full Python TLS and browser runs use synthetic
+temporary loopback fixtures only. Node 22.20.0; no dependency installed. Host/browser
+PASS never establishes Safari/WebKit, real iOS installation/reboot, radio state,
+cache retention or Android behavior. Firmware compilation/flashing and production
+ESP32 checks are outside this static UI change; ESP32 host/source boundary tests
+in the existing Python suite ran without a device operation.
+
+The panel is a snapshot, not persistent forensic history. It cannot run on a native
+navigation error page; manual capture before reload is required. No automatic cache
+repair, forced activation, broader navigation fallback or timeout increase is added.
+The instrumented build is local only; phone reproduction awaits separate authorized
+hosting and owner-run measurements. No network/DNS/TLS/Cloudflare/HA/live-emulator
+change, deployment, push, merge, PR, real subscription access or push send.
+
+Open blockers: repeat Safari offline navigation and installed cold/reboot launch in
+both locales, attribute the transient mismatch, qualify storage/update/eviction,
+Android, and protected SoftAP/DNS/trusted API (second AP adapter unavailable).
+**Secure enrollment, offline recovery and production integration remain NO-GO.**
+
+
 ## Owner-observed iPhone offline PWA validation — 2026-10-19
 
 **Installed PWA offline launch observed PASS; Safari offline reload observed FAIL;

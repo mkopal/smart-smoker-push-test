@@ -13,12 +13,14 @@ async function valid(response, digest) {
   return Array.from(new Uint8Array(hash), byte => byte.toString(16).padStart(2, '0')).join('') === digest;
 }
 async function complete() {
-  if (!await caches.has(CACHE)) throw new Error('Shell unavailable');
+  if (!await caches.has(CACHE)) throw new Error('cache_missing');
   const cache = await caches.open(CACHE);
   const entries = await cache.keys();
-  if (entries.length !== ASSETS.size) throw new Error('Unexpected shell entries');
+  if (entries.length !== ASSETS.size) throw new Error('entry_count_mismatch');
   for (const [url, digest] of ASSETS) {
-    if (!await valid(await cache.match(url), digest)) throw new Error('Incomplete or obsolete shell');
+    const response = await cache.match(url);
+    if (!response) throw new Error('asset_missing');
+    if (!await valid(response, digest)) throw new Error('asset_invalid');
   }
   return cache;
 }
@@ -53,8 +55,12 @@ self.addEventListener('message', event => {
   event.waitUntil((async () => {
     try {
       await complete();
-      event.ports[0].postMessage({ version: RELEASE.version, ready: true });
-    } catch (_) { event.ports[0].postMessage({ ready: false }); }
+      event.ports[0].postMessage({ version: RELEASE.version, ready: true, reason: 'verified' });
+    } catch (error) {
+      const reason = ['cache_missing', 'entry_count_mismatch', 'asset_missing', 'asset_invalid'].includes(error.message)
+        ? error.message : 'verification_error';
+      event.ports[0].postMessage({ version: RELEASE.version, ready: false, reason });
+    }
   })());
 });
 self.addEventListener('fetch', event => {

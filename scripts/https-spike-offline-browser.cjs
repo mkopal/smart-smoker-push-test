@@ -91,6 +91,12 @@ const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
       }
       throw new Error('Readiness timeout');
     }
+    // First-ever offline navigation has no controlling registration/cache.
+    await cdp('Network.enable');
+    await cdp('Network.setCacheDisabled', { cacheDisabled: true });
+    await cdp('Network.emulateNetworkConditions', { offline: true, latency: 0, downloadThroughput: 0, uploadThroughput: 0 });
+    assert((await cdp('Page.navigate', { url: target + 'https-spike/' })).errorText);
+    await cdp('Network.emulateNetworkConditions', { offline: false, latency: 0, downloadThroughput: -1, uploadThroughput: -1 });
     // Install the original root worker first, then the more specific spike worker.
     await cdp('Page.navigate', { url: target });
     await until("!!document.getElementById('subscribe') && !document.getElementById('subscribe').disabled");
@@ -111,6 +117,11 @@ const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
     assert.equal(report.manifest.start_url, './');
     assert.equal(report.caches.length, 1);
     assert.equal(report.local.length, 0);
+    const diagnostic = () => evaluate("JSON.parse(document.getElementById('diagnostics').textContent)");
+    await until("JSON.parse(document.getElementById('diagnostics').textContent).active === 'activated'");
+    assert.equal((await diagnostic()).reason, 'verified');
+    assert.equal((await diagnostic()).workerVersion, report.version);
+    assert.equal((await diagnostic()).controller, 'spike');
     // Force actual install with identical RELEASE by changing only a loopback fixture comment.
     // All asset requests would now fail: reinstall must reuse the existing verified cache.
     workerVariant = '\n// same-release reinstall regression fixture\n';
@@ -121,6 +132,8 @@ const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
       await lifecycleRegistration.update();
     })()`);
     await until("!!lifecycleRegistration.waiting && lifecycleRegistration.waiting.state === 'installed'");
+    await until("JSON.parse(document.getElementById('diagnostics').textContent).waiting === 'installed' && JSON.parse(document.getElementById('diagnostics').textContent).reason === 'verified'");
+    assert.equal((await diagnostic()).reason, 'verified');
     assert.equal(shellAssetRequests, beforeReinstallRequests, 'Same-release installation must not fetch healthy assets');
     assert.equal(await evaluate(`(async () => {
       const channel = new MessageChannel();
@@ -141,6 +154,7 @@ const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
     await until("!!window.failedInstaller && failedInstaller.state === 'redundant'");
     assert.equal(await evaluate("(async () => (await fetch('./index.html')).status)()"), 200);
     assert.equal(await evaluate("(async () => (await caches.keys()).includes(" + JSON.stringify(report.caches[0]) + "))()"), true);
+    await until("JSON.parse(document.getElementById('diagnostics').textContent).reason === 'verified' && !document.getElementById('run').disabled");
     rejectShellAssets = false;
     workerVariant = '';
     await cdp('Network.enable');
@@ -170,8 +184,21 @@ const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
     const entries = await evaluate(`(async () => (await (await caches.open((await caches.keys()).find(name => name.endsWith(SPIKE_SHELL_VERSION)))).keys()).map(r => r.url).sort())()`);
     assert.equal(entries.length, 9);
     assert(entries.every(url => url.startsWith(spike) && !url.includes('/spike/v1/')));
+    // Release mismatch is separate from cache incompleteness in the running UI.
+    await evaluate("window.SPIKE_SHELL_VERSION = 'v1-' + 'b'.repeat(64); document.getElementById('recheck').click()");
+    await until("JSON.parse(document.getElementById('diagnostics').textContent).reason === 'release_mismatch'");
+    assert.equal((await diagnostic()).cache, 'complete');
+    assert.equal(await evaluate("document.getElementById('run').disabled"), true);
+    await evaluate('window.SPIKE_SHELL_VERSION = ' + JSON.stringify(report.version) + "; document.getElementById('recheck').click()");
+    await until("JSON.parse(document.getElementById('diagnostics').textContent).reason === 'verified'");
+    // Exact index navigation also works offline.
+    assert(!(await cdp('Page.navigate', { url: spike + 'index.html' })).errorText);
+    await until("!!document.getElementById('run') && !document.getElementById('run').disabled");
     // Storage eviction/incomplete shell must fail closed, rather than render partial success.
     await evaluate(`(async () => { const cache = await caches.open((await caches.keys()).find(name => name.endsWith(SPIKE_SHELL_VERSION))); await cache.delete(new URL('catalogs.js', location.href).href); })()`);
+    await evaluate("document.getElementById('recheck').click()");
+    await until("JSON.parse(document.getElementById('diagnostics').textContent).reason === 'entry_count_mismatch'");
+    assert.equal(await evaluate("document.getElementById('run').disabled"), true);
     const incomplete = await cdp('Page.navigate', { url: spike });
     assert(incomplete.errorText, 'Incomplete offline shell must fail navigation');
     const rootOffline = await cdp('Page.navigate', { url: target });
