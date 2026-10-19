@@ -19,6 +19,8 @@
     "caching": "Preparing offline shell. Keep this page online until ready.",
     "ready": "Offline shell verified. Only this static app is cached; device checks still require reachable HTTPS.",
     "reload": "Offline shell is not controlling this page yet. Close all HTTPS Spike windows, then reopen online.",
-    "unavailable": "Offline shell incomplete or incompatible. Device checks disabled. Reconnect and close all HTTPS Spike windows before reopening online."
+    "unavailable": "Offline shell incomplete or incompatible. Device checks disabled. Reconnect and close all HTTPS Spike windows before reopening online.",
+    "diagnostics": "Offline shell diagnostics (local only)",
+    "recheck": "Recheck shell"
   }
 }

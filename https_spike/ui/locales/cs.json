@@ -19,6 +19,8 @@
     "caching": "Připravuji offline aplikaci. Nechte stránku online, dokud nebude připravena.",
     "ready": "Offline aplikace ověřena. Uloženy jsou pouze statické soubory; testy zařízení stále vyžadují dostupné HTTPS.",
     "reload": "Offline aplikace zatím tuto stránku neovládá. Zavřete všechna okna HTTPS Spike a znovu otevřete online.",
-    "unavailable": "Offline aplikace není úplná nebo kompatibilní. Testy zařízení jsou vypnuté. Připojte internet, zavřete všechna okna HTTPS Spike a znovu otevřete online."
+    "unavailable": "Offline aplikace není úplná nebo kompatibilní. Testy zařízení jsou vypnuté. Připojte internet, zavřete všechna okna HTTPS Spike a znovu otevřete online.",
+    "diagnostics": "Diagnostika offline aplikace (pouze místní)",
+    "recheck": "Znovu ověřit aplikaci"
   }
 }

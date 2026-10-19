@@ -6,8 +6,12 @@ iOS 27.0.1, Safari tab and installed Home Screen PWA (2026-10-18). See the
 Owner reports normal system trust and the synthetic-check success message in both
 modes, supported by screenshots; this documentation task did not independently
 instrument or repeat those runs. P0, real-device HTTPS integration and production
-remain **NO-GO**: ownership, offline/AP, TLS negatives/recovery, Android, certificate
-lifecycle and ESP32 resources are still unverified. Direct Web Push is a separate PoC.
+remain **NO-GO**: ownership, isolated AP transport, TLS negatives/recovery, Android,
+certificate lifecycle and ESP32 resources are still unverified. Direct Web Push is
+a separate PoC. On 2026-10-19 the owner reported installed-PWA offline launch PASS
+and one post-reboot offline launch PASS, Safari offline reload FAIL, a transient
+shell mismatch and an offline API negative-test PASS. See the
+[offline evidence and open reliability issues](../VALIDATION.md#owner-observed-iphone-offline-pwa-validation--2026-10-19).
 
 This Linux-only test tool follows the main repository's
 [P0 enrollment architecture](../../smart-smoker/docs/WEB_PUSH_ENROLLMENT.md) and
@@ -261,8 +265,10 @@ for TLS, DNS, CORS or permission failures; do not classify the cause from UI alo
 Initially all rows were NOT RUN. The owner has since confirmed ordinary trusted
 transport and the synthetic success message in both modes; see VALIDATION. These
 observations do not complete every row below. TLS negative controls, browser foreign
-Origin, offline/AP, interruption/recovery, prompts and repetitions remain NOT RUN
-unless separately evidenced. Record Safari and Home Screen results separately.
+Origin, isolated AP, interruption/recovery, prompts and repetitions remain NOT RUN
+unless separately evidenced. The limited offline shell observations from 2026-10-19
+are recorded in the manual matrix section below. Record Safari and Home Screen
+results separately.
 
 | Check | Exact procedure / expected result |
 |---|---|
@@ -362,7 +368,9 @@ command is provided, because certificate/account custody may need retention.
 The isolated spike now has an offline static shell. This supersedes earlier
 statements here that its worker has no fetch handler. The root Web Push PWA is
 unchanged and still does not promise offline page navigation. This is local source,
-not a deployed release or evidence of phone acceptance. Secure enrollment,
+not proof of deployed artifact identity or complete phone acceptance. The
+[owner-observed offline results](../VALIDATION.md#owner-observed-iphone-offline-pwa-validation--2026-10-19)
+qualify only the reported 2026-10-19 runs. Secure enrollment,
 production integration and offline recovery remain **NO-GO**.
 
 The artifact still contains exactly ten files. `sw.js` is the browser-installed
@@ -418,7 +426,36 @@ revocation or latest server policy: there is no absolute freshness guarantee. Re
 online periodically and close all spike windows to accept a new release. No expiry
 exception, TLS fallback or secure recovery mechanism is implied by cached UI.
 
-### Manual matrix: all results currently NOT RUN
+<a id="manual-matrix-all-results-currently-not-run"></a>
+
+### Manual matrix and current observed results
+
+The original matrix began with all physical results NOT RUN; that historical status
+is retained in earlier validation entries. Current owner-observed results on iPhone
+14 / iOS 27.0.1 (2026-10-19), with Airplane Mode enabled and Wi-Fi manually disabled:
+
+| Context / control | Current reported result |
+|---|---|
+| Safari online initialization | **PASS**: application's shell integrity/completeness check reported verified; long-term persistence unproven |
+| Safari offline reload | **FAIL**: Safari reported no internet; cause unknown, no service-worker/cache defect inferred |
+| iOS Home Screen PWA offline launch | Observed **PASS with transient inconsistency**: Home Screen mode detected; `Offline shell incomplete or incompatible.` then subsequently `Offline shell verified.`; investigation pending |
+| Installed PWA post-reboot offline launch | Observed **PASS, single reported run**: Home Screen mode detected, shell verified, ready with no request sent. Wi-Fi became enabled after restart according to the owner and was manually disabled again before launch; Airplane Mode remained enabled |
+| Offline synthetic API negative test | **PASS**: manual Run produced the existing checks-failed message, with no false success |
+| Android Chrome / installed PWA | **NOT RUN** / **NOT RUN** |
+| Isolated SoftAP transport | **NOT RUN**; blocked by absence of a dedicated second AP-capable USB Wi-Fi adapter |
+
+See [exact UI messages, evidence limits and next steps](../VALIDATION.md#owner-observed-iphone-offline-pwa-validation--2026-10-19).
+These observations do not complete the procedures below. Repeated cold launches,
+both locales, storage retention/eviction, mobile update and negative cache controls
+remain unqualified. The full offline bootstrap gate remains **OPEN / NO-GO**.
+Real ESP32 provisioning, secure enrollment and recovery remain **NO-GO**.
+
+The owner currently has no dedicated second adapter available. Obtain a dedicated
+AP-capable USB Wi-Fi adapter before the physical isolated SoftAP experiment; do not
+change or repurpose the RT5370 adapter, Linux bridge, Home Assistant networking or
+production ESP32. Preserve the evidence, investigate Safari reload and transient
+PWA mismatch separately if necessary, then later test both iOS and Android on a
+real isolated SoftAP.
 
 Any hosting/publication or network/AP preparation needs separate owner authorization.
 Use the existing spike URL/path and installation identity; never replace the root
@@ -475,9 +512,12 @@ reload, EN/CS, unreachable API, missing cache entry, and root/spike isolation. I
 not test mobile installation, OS process restoration/reboot, Safari/WebKit, Android,
 radio routing, storage retention/eviction timing or real-device cold start.
 
-Current gates: Safari tab **NOT RUN**; iOS Home Screen **NOT RUN**; Android Chrome
-**NOT RUN**; Android installed PWA **NOT RUN**; protected SoftAP/fresh trusted device
-API **NOT RUN**; expired TLS/combined recovery **BLOCKED / NO-GO**. The historical
+Current gates: Safari offline reload **observed FAIL**; iOS Home Screen offline
+launch **observed PASS with transient inconsistency**; post-reboot offline launch
+**observed PASS (single reported run)**; shell mismatch **investigation pending**;
+Android Chrome and installed PWA **NOT RUN**; protected SoftAP/fresh trusted device
+API **NOT RUN** (dedicated adapter unavailable); full offline bootstrap **OPEN /
+NO-GO**; expired TLS/combined recovery **BLOCKED / NO-GO**. The historical
 [offline assessment](../OFFLINE_RECOVERY.md) is retained unchanged; its no-cache
 implementation observations refer to the pre-spike baseline. Its recovery blockers
 are not removed by this static-shell change.
@@ -510,3 +550,128 @@ by deterministic VM tests; they are not real mobile power-loss observations.
 Retaining old cache data on activation failure is not a promise of registration
 rollback: browser lifecycle decisions and external storage loss remain outside
 application control. No fallback to an unverified or obsolete shell is introduced.
+
+### iOS offline diagnostics investigation — 2026-10-19
+
+**Cause unconfirmed; secure enrollment and production integration NO-GO.** The
+owner-observed installed-PWA offline launch and single post-reboot PASS remain
+valid within their original scope. No iPhone was retested in this investigation.
+Safari's native no-internet error does not identify which navigation stage failed.
+The deployed SHA/release, controller, cache and exact reload URL/method for that
+failure were not captured. Desktop Chromium results do not establish iOS behavior.
+
+The diagnostic branch starts at fetched `origin/main` (`981525e`). Main did not
+contain the latest owner evidence commit `29660ed`, so that documentation was
+cherry-picked as `2bfca3a` before implementation; the original branch/commit remains.
+No earlier evidence is removed or promoted to a broader PASS.
+
+| Candidate explanation | Evidence and confidence | What would distinguish it on the phone |
+|---|---|---|
+| Lifecycle transition / late verification reply | **High** confidence in a code-level race opportunity: startup, pageshow, register and controllerchange could overlap; the previous code accepted an older reply/timeout after a newer check. Regression tests now exercise this ordering. **Low** confidence that it caused the reported mismatch: no timing trace | Before/after controller and lifecycle snapshots with reason codes; a worker timeout alone is not proof of a lifecycle defect |
+| Safari versus installed-app storage | **High** confidence that preparation must be independent, based on WebKit's documented separation; **medium** as an explanation of differing context results, unmeasured here | Prepare and verify inside each context, compare versions, then test each offline; success in one says nothing about the other's cache |
+| App / controlling worker version mismatch | **High** confidence the old UI mapped a version mismatch to the generic message; **low** confidence it occurred on the phone | `release_mismatch`, expectedVersion differs from workerVersion, potentially with cache complete |
+| Incomplete install / failed update | **High** confidence incomplete candidates cannot serve the shell under this implementation; VM interruption/quota and Chromium rejected-update tests preserve the usable active release. **Low** phone attribution | Installing/waiting states, active controller verification, and cache reason; no persistent installation error history exists |
+| iOS offline navigation handling / bypass | **Low**, unresolved: a native error is compatible with no worker interception or a failed worker response; Chromium ordinary reload succeeds, but is a different engine | Compare exact directory URL and index.html, ordinary reload, fresh tab and icon cold launch. Record the precise action; do not infer an iOS bug from a desktop PASS |
+| Cache eviction / loss / corruption | **High** confidence these invalidate offline navigation in our tests; **low** as the owner-event cause. No cache snapshot exists. A later verified shell while offline is weak evidence against permanent loss of the same release, but context/release continuity is unknown | cache_missing / entry_count_mismatch / asset_missing / asset_invalid before navigation; these describe present state, never prove eviction as its cause |
+| Temporary missing or different controller | **High** confidence this prevents this document's readiness; **low** phone attribution. Mocked takeover recovers without resetting cache | controller_missing / controller_other versus verified after controllerchange |
+| Already-running app versus reload | **High** confidence an in-memory document can render without fetching a new shell; **medium** relevance to the discrepancy, exact owner actions unknown | Separate warm resume, explicit recheck, full navigation/reload, process termination and reboot; cached UI/OS snapshot is not fresh-document evidence |
+
+Primary sources checked 2026-10-19:
+[W3C Service Workers](https://www.w3.org/TR/service-workers/#service-worker-container-controller)
+defines the controller and [lifecycle events](https://www.w3.org/TR/service-workers/#serviceworkercontainer-interface).
+[WebKit Safari 17.2](https://webkit.org/blog/14787/webkit-features-in-safari-17-2/#login-cookies)
+describes cookies copied on installation and other website data not shared with
+the installed app afterward. This supports separate preparation, not a measured
+storage claim for the owner's reported iOS build.
+[WebKit storage policy](https://webkit.org/blog/14403/updates-to-storage-policy/)
+documents quota/eviction conditions for browser storage including Cache API and
+Service Workers. It does not establish eviction in this incident or permanent
+storage for an installed app. No arbitrary seven-day explanation is assumed.
+
+#### Diagnostic panel contract
+
+Open **Offline shell diagnostics (local only)** / **Diagnostika offline aplikace
+(pouze místní)**. The panel displays a current in-memory snapshot, with no telemetry,
+persistent event log, device identity or network probe. Recheck shell verifies the
+controlling worker's static cache through MessageChannel; it does not call update,
+skipWaiting, clear storage, reload or contact the synthetic API. It retains the
+existing 5 s worker-response deadline. The separate Run button remains manual.
+
+| Field / reason | Meaning and limit |
+|---|---|
+| context | tab or standalone detection, not a claim of a separate storage partition |
+| controller / controllerState | none, spike or other plus worker lifecycle state; no script URL is displayed |
+| active / waiting / installing | States from the exact spike registration; none can also mean the registration lookup has not completed. Other/root registrations are not displayed |
+| registration | pending / registered / failed / unavailable for this document's register attempt; failed can coexist with a healthy offline controller |
+| expectedVersion / workerVersion | Generated application release and responding controlling worker release; unknown if unavailable or not a valid release ID. Waiting-worker identity is not queried and latest hosted release is unknowable offline |
+| cache | complete / incomplete from that worker's verification, or unknown when no verification response exists; not a persistence guarantee |
+| verified | Full matching release verified at the last check |
+| checking | Verification pending; previous cache result cleared |
+| controller_missing / controller_other | No controller or a worker outside the expected spike script |
+| release_mismatch | Worker-reported identity differs from this application's expected identity |
+| cache_missing | Worker release's cache absent |
+| entry_count_mismatch | Number of cache entries differs from the exact static allowlist; does not distinguish missing from extra entries |
+| asset_missing / asset_invalid | Expected asset absent despite matching count / response or SHA-256 invalid; no asset name, URL, bytes or digest is returned |
+| verification_error | Storage/crypto or other verification exception, raw exception suppressed |
+| worker_timeout / worker_message_failed | No reply by deadline / message could not be sent; cache condition unknown |
+| worker_unverified / worker_unavailable | Unrecognized/legacy failure reply / unsupported or insecure context |
+
+Lifecycle events trigger a fresh check, and only the newest check may publish its
+result. A rejected candidate rechecks the controlling release instead of directly
+marking a healthy active shell unavailable. Identical registration objects are
+observed once. Installation, activation, cleanup, static allowlist, fetch routing,
+CSP and API non-interception are preserved. Changes produce a new deterministic
+shell release through the existing builder. Root PWA source/output stays unchanged.
+
+The panel cannot render if navigation fails before the application loads. Capture
+its last snapshot before a reload and again after online recovery; the latter is
+new evidence, not the state at failure. No cache-content export, subscription,
+credential, arbitrary exception, user agent, device ID, endpoint or URL is added to
+the diagnostic payload. Manually recorded screenshots must follow the same scope.
+
+#### Manual iPhone reproduction procedure
+
+The instrumented artifact is **local only**. Using it on the phone requires a
+separately approved publication/test-host arrangement; this investigation performs
+no deployment or live DNS/TLS/network change. Existing hosted content will not gain
+the panel from this local branch. Preserve the existing installation and reboot
+PASS; do not uninstall it or clear origin storage to prepare a negative control.
+
+1. Record run ID, time with timezone, iPhone model, owner-reported OS/browser build,
+   source SHA, generated release, EN/CS, tab versus icon, exact public spike path
+   and online/offline settings. Exclude private addresses, names and credentials.
+   Use the exact `/smart-smoker-push-test/https-spike/` path without query/fragment.
+2. Online in Safari, wait for verified shell, open the panel and record all fields.
+   Repeat **inside the existing Home Screen app**. If versions differ or a worker
+   waits, capture that state before closing all spike windows and reopening online
+   to accept the update; do not force activation or delete root worker/cache data.
+3. In the owner's approved offline arrangement, enable Airplane Mode and manually
+   disable Wi-Fi. First resume the already-running document in each context and
+   record its state, then tap Recheck shell and record the result separately.
+   Wait beyond 5 s before classifying a check as timed out.
+4. In Safari, capture diagnostics immediately before ordinary reload. Record any
+   native error verbatim and the action that triggered it. Separately open a fresh
+   tab at the exact directory URL and at its `index.html` URL. Do not replace a
+   failed result with a later success or call a resumed snapshot a navigation PASS.
+5. Close/terminate and reopen the Home Screen app from its icon offline. Record
+   standalone mode, rendered locale, release, reason and lifecycle states. If an
+   incomplete message appears, capture it **before** tapping Recheck; record the
+   subsequent result and delay independently, without reconnecting in between.
+6. Reboot the iPhone. Reconfirm Airplane Mode **and manually disable Wi-Fi again**
+   before opening the existing icon, because the owner observed Wi-Fi reenabled
+   after reboot. Record shell verification and Ready/no request sent separately.
+   Preserve the original single post-reboot PASS even if a new run fails.
+7. If verified, tap Run with the endpoint unreachable: require the existing failure
+   message within the 10 s request deadline; never count static readiness as API
+   or enrollment success. Check no automatic retry on later network restoration.
+8. Repeat three times per locale and context, including browser/app termination.
+   After any failure, capture the native error or panel, restore approved online
+   access, and capture recovery diagnostics before repair. Cache destruction,
+   deliberate incomplete updates and first-ever-offline controls belong only in
+   disposable local profiles/test installations, not the working root push app.
+
+Remaining blockers: instrumented repeated iOS navigation/cold-start results,
+transient-mismatch attribution, storage retention/update/eviction qualification,
+Android browser/installed tests, and isolated SoftAP/local-DNS/fresh trusted API
+validation (dedicated second AP-capable adapter unavailable). No assertion of a
+fixed Safari error, durable storage, secure enrollment or production readiness.
